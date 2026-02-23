@@ -225,6 +225,15 @@
   #successScreen h2 { color: #111; margin-bottom: 0.5rem; }
   #successScreen p  { color: #555; font-size: 0.93rem; line-height: 1.6; }
 
+  input[type="date"] {
+    text-align: left;
+    display: block;
+    -webkit-text-align: left;
+  }
+  input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
+  }
+
   @media (max-width: 480px) {
     .fg.sm, .fg.md { flex: 0 0 100%; }
   }
