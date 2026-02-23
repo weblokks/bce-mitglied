@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antrag Kostenerstattung – BC Erfurt e.V.</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #111;
+    padding: 1.5rem 1rem;
+  }
+
+  .card {
+    max-width: 660px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    padding: 2rem 1.8rem;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 1.6rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid #111;
+    text-align: center;
+    line-height: 1.4;
+  }
+  h1 small {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: #555;
+    margin-top: 0.25rem;
+    letter-spacing: 0.04em;
+  }
+
+  fieldset {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 1.1rem 1.2rem 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+  legend {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #111;
+    padding: 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .row { display: flex; gap: 0.8rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
+  .fg  { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
+  .fg.sm  { flex: 0 0 120px; }
+  .fg.md  { flex: 0 0 180px; }
+  .fg.full { flex: 0 0 100%; }
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+  }
+  .req { color: #c00; margin-left: 1px; }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  input[type="number"] {
+    border: 1.5px solid #bbb;
+    border-radius: 5px;
+    padding: 0.52rem 0.7rem;
+    font-size: 0.92rem;
+    background: #fafafa;
+    width: 100%;
+    color: #111;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus {
+    outline: none;
+    border-color: #111;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+    background: #fff;
+  }
+  input.err { border-color: #c00 !important; }
+
+  /* Upload-Bereich */
+  .upload-area {
+    border: 2px dashed #bbb;
+    border-radius: 6px;
+    padding: 1.4rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: #fafafa;
+    position: relative;
+  }
+  .upload-area:hover, .upload-area.drag { border-color: #111; background: #f0f0f0; }
+  .upload-area.has-file { border-color: #1a6e38; background: #f0fff4; }
+  .upload-area input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+  .upload-text { font-size: 0.88rem; color: #555; line-height: 1.5; }
+  .upload-text strong { color: #111; }
+  .upload-hint { font-size: 0.76rem; color: #888; margin-top: 0.3rem; }
+  #fileInfo {
+    display: none;
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    color: #1a6e38;
+    font-weight: 600;
+  }
+  #fileInfo .remove-btn {
+    background: none; border: none; color: #c00; cursor: pointer;
+    font-size: 0.8rem; margin-left: 0.5rem; text-decoration: underline;
+  }
+
+  /* Preview */
+  #previewWrap {
+    display: none;
+    margin-top: 0.7rem;
+    text-align: center;
+  }
+  #previewWrap img {
+    max-width: 100%; max-height: 180px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+
+  /* Betrag */
+  .amount-wrap { position: relative; }
+  .amount-wrap input { padding-left: 2.2rem; }
+  .amount-prefix {
+    position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%);
+    font-size: 0.92rem; color: #555; pointer-events: none;
+  }
+
+  /* Einwilligung */
+  .consent-block {
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #333;
+  }
+  .consent-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+  }
+  .consent-row input[type="checkbox"] {
+    width: 1rem; height: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.18rem;
+    accent-color: #111;
+  }
+  .consent-row label {
+    font-weight: 400;
+    font-size: 0.88rem;
+    cursor: pointer;
+    color: #222;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.82rem;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .btn:hover:not(:disabled) { background: #333; }
+  .btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .spinner {
+    width: 17px; height: 17px;
+    border: 2.5px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #msg {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  #msg.ok  { background: #f0fff4; color: #1a6e38; border: 1px solid #b2dfca; }
+  #msg.err { background: #fff0f0; color: #9a1c1c; border: 1px solid #f5b0b0; }
+
+  #successScreen {
+    display: none;
+    text-align: center;
+    padding: 2.5rem 1rem;
+  }
+  #successScreen .icon { font-size: 3rem; margin-bottom: 1rem; }
+  #successScreen h2 { color: #111; margin-bottom: 0.5rem; }
+  #successScreen p  { color: #555; font-size: 0.93rem; line-height: 1.6; }
+
+  @media (max-width: 480px) {
+    .fg.sm, .fg.md { flex: 0 0 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>
+    Antrag Kostenerstattung Schiedsrichterabrechnung
+    <small>BC Erfurt e.V.</small>
+  </h1>
+
+  <form id="form" novalidate>
+
+    <!-- Beleg hochladen -->
+    <fieldset>
+      <legend>Beleg / Quittung</legend>
+      <div class="row">
+        <div class="fg full">
+          <label>Belegdatei <span class="req">*</span></label>
+          <div class="upload-area" id="uploadArea">
+            <input type="file" id="belegFile" name="belegFile"
+                   accept="image/*,application/pdf"
+                   capture="environment"
+                   onchange="handleFile(this)">
+            <div class="upload-icon">📎</div>
+            <div class="upload-text">
+              <strong>Datei auswählen oder hierher ziehen</strong><br>
+              Auf dem Handy: Foto aufnehmen oder aus Galerie wählen
+            </div>
+            <div class="upload-hint">JPG, PNG, PDF · max. 10 MB</div>
+          </div>
+          <div id="fileInfo"></div>
+          <div id="previewWrap"><img id="previewImg" src="" alt="Vorschau"></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Spieldaten -->
+    <fieldset>
+      <legend>Spieldaten</legend>
+      <div class="row">
+        <div class="fg">
+          <label for="betrag">Auszahlungsbetrag <span class="req">*</span></label>
+          <div class="amount-wrap">
+            <span class="amount-prefix">€</span>
+            <input type="number" id="betrag" name="betrag" required
+                   min="0.01" step="0.01" placeholder="0,00"
+                   style="padding-left:2.2rem">
+          </div>
+        </div>
+        <div class="fg">
+          <label for="spielDatum">Datum des Spiels <span class="req">*</span></label>
+          <input type="date" id="spielDatum" name="spielDatum" required>
+        </div>
+        <div class="fg">
+          <label for="spielNummer">Spielnummer <span class="req">*</span></label>
+          <input type="text" id="spielNummer" name="spielNummer" required placeholder="z.B. 12345">
+        </div>
+      </div>
+      <div class="row">
+        <div class="fg">
+          <label for="heimTeam">Heim-Team <span class="req">*</span></label>
+          <input type="text" id="heimTeam" name="heimTeam" required placeholder="z.B. BC Erfurt">
+        </div>
+        <div class="fg">
+          <label for="auswaertsTeam">Auswärts-Team <span class="req">*</span></label>
+          <input type="text" id="auswaertsTeam" name="auswaertsTeam" required placeholder="z.B. SV Musterstadt">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Persönliche Daten -->
+    <fieldset>
+      <legend>Persönliche Daten</legend>
+      <div class="row">
+        <div class="fg">
+          <label for="vorname">Vorname <span class="req">*</span></label>
+          <input type="text" id="vorname" name="vorname" required autocomplete="given-name">
+        </div>
+        <div class="fg">
+          <label for="nachname">Nachname <span class="req">*</span></label>
+          <input type="text" id="nachname" name="nachname" required autocomplete="family-name">
+        </div>
+      </div>
+      <div class="row">
+        <div class="fg">
+          <label for="email">E-Mail <span class="req">*</span></label>
+          <input type="email" id="email" name="email" required autocomplete="email">
+        </div>
+      </div>
+      <div class="row">
+        <div class="fg">
+          <label for="kontoinhaber">Kontoinhaber <span class="req">*</span></label>
+          <input type="text" id="kontoinhaber" name="kontoinhaber" required autocomplete="name">
+        </div>
+      </div>
+      <div class="row">
+        <div class="fg">
+          <label for="iban">IBAN <span class="req">*</span></label>
+          <input type="text" id="iban" name="iban"
+                 placeholder="DE00 0000 0000 0000 0000 00"
+                 maxlength="27" autocomplete="off"
+                 oninput="formatIban(this)" required>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Bestätigung -->
+    <div class="consent-block">
+      <div class="consent-row">
+        <input type="checkbox" id="bestaetigung" name="bestaetigung" required>
+        <label for="bestaetigung">
+          Hiermit bestätige ich, dass ich den genannten Betrag an den/die Schiedsrichter ausgezahlt habe und die Angaben korrekt und vollständig sind.
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" class="btn" id="submitBtn">
+      <span id="btnText">Antrag absenden</span>
+      <span class="spinner" id="spinner"></span>
+    </button>
+    <div id="msg"></div>
+
+  </form>
+
+  <div id="successScreen">
+    <div class="icon">✅</div>
+    <h2 id="successName"></h2>
+    <p>Dein Antrag auf Kostenerstattung wurde erfolgreich übermittelt.<br>
+       Wir melden uns in Kürze per E-Mail bei dir.</p>
+  </div>
+</div>
+
+<script>
+  const PROXY_URL = "https://script.google.com/macros/s/AKfycbzNAdktJbzoDugs1Kn3UV0mQgq10bRFW-a_u2tq45EAgzrPgd-cAem_y8aWOWfhsIlnWg/exec";
+  const TIMEOUT_MS = 90000;
+
+  // ── Drag & Drop ───────────────────────────────────────────
+  const uploadArea = document.getElementById('uploadArea');
+  uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag');
+    const file = e.dataTransfer.files[0];
+    if (file) applyFile(file);
+  });
+
+  function handleFile(input) {
+    if (input.files[0]) applyFile(input.files[0]);
+  }
+
+  function applyFile(file) {
+    if (file.size > 10 * 1024 * 1024) {
+      showMsg('Die Datei ist zu groß (max. 10 MB).', 'err'); return;
+    }
+    uploadArea.classList.add('has-file');
+    const info = document.getElementById('fileInfo');
+    info.style.display = 'block';
+    info.innerHTML = '📄 <strong>' + file.name + '</strong> ('
+      + (file.size / 1024).toFixed(0) + ' KB)'
+      + '<button class="remove-btn" onclick="removeFile()">Entfernen</button>';
+
+    // Bildvorschau
+    const preview = document.getElementById('previewWrap');
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('previewImg').src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+
+  function removeFile() {
+    document.getElementById('belegFile').value = '';
+    uploadArea.classList.remove('has-file');
+    document.getElementById('fileInfo').style.display = 'none';
+    document.getElementById('previewWrap').style.display = 'none';
+    document.getElementById('previewImg').src = '';
+  }
+
+  // ── IBAN formatieren ──────────────────────────────────────
+  function formatIban(el) {
+    let v = el.value.replace(/\s/g,'').toUpperCase();
+    el.value = v.match(/.{1,4}/g)?.join(' ') || v;
+  }
+
+  // ── Kontoinhaber vorausfüllen ─────────────────────────────
+  let kontoinhaberManual = false;
+  document.getElementById('kontoinhaber').addEventListener('input', () => { kontoinhaberManual = true; });
+  ['vorname','nachname'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      if (kontoinhaberManual) return;
+      const v = document.getElementById('vorname').value.trim();
+      const n = document.getElementById('nachname').value.trim();
+      document.getElementById('kontoinhaber').value = [v, n].filter(Boolean).join(' ');
+    });
+  });
+
+  // ── Validierung ───────────────────────────────────────────
+  function validate() {
+    let ok = true;
+    ['spielDatum','spielNummer','heimTeam','auswaertsTeam','betrag',
+     'vorname','nachname','email','kontoinhaber','iban'].forEach(id => {
+      const el = document.getElementById(id);
+      const empty = !el.value.trim();
+      el.classList.toggle('err', empty);
+      if (empty) ok = false;
+    });
+
+    const emailEl = document.getElementById('email');
+    if (emailEl.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) {
+      emailEl.classList.add('err'); ok = false;
+    }
+
+    const ibanRaw = document.getElementById('iban').value.replace(/\s/g,'');
+    if (ibanRaw && !/^DE\d{20}$/.test(ibanRaw)) {
+      document.getElementById('iban').classList.add('err');
+      showMsg('Bitte eine gültige deutsche IBAN eingeben (DE + 20 Ziffern).', 'err');
+      ok = false;
+    }
+
+    const betrag = parseFloat(document.getElementById('betrag').value);
+    if (!betrag || betrag <= 0) {
+      document.getElementById('betrag').classList.add('err');
+      ok = false;
+    }
+
+    if (!document.getElementById('belegFile').files[0]) {
+      uploadArea.style.borderColor = '#c00';
+      showMsg('Bitte einen Beleg hochladen.', 'err');
+      ok = false;
+    } else {
+      uploadArea.style.borderColor = '';
+    }
+
+    if (!document.getElementById('bestaetigung').checked) {
+      showMsg('Bitte bestätige, dass du den Betrag ausgezahlt hast.', 'err');
+      ok = false;
+    }
+
+    return ok;
+  }
+
+  function showMsg(html, type) {
+    const el = document.getElementById('msg');
+    el.className = type;
+    el.innerHTML = html;
+    el.style.display = 'block';
+  }
+
+  function setLoading(active) {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = active;
+    document.getElementById('spinner').style.display = active ? 'block' : 'none';
+    document.getElementById('btnText').textContent = active ? 'Wird übermittelt …' : 'Antrag absenden';
+  }
+
+  // ── Submit ────────────────────────────────────────────────
+  document.getElementById('form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    document.getElementById('msg').style.display = 'none';
+    if (!validate()) return;
+
+    setLoading(true);
+
+    const file    = document.getElementById('belegFile').files[0];
+    const ibanRaw = document.getElementById('iban').value.replace(/\s/g,'');
+
+    // Datei als Base64 lesen
+    const fileBase64 = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload  = () => res(reader.result.split(',')[1]);
+      reader.onerror = () => rej(new Error('Datei konnte nicht gelesen werden.'));
+      reader.readAsDataURL(file);
+    });
+
+    const data = {
+      spielDatum:    document.getElementById('spielDatum').value,
+      spielNummer:   document.getElementById('spielNummer').value.trim(),
+      heimTeam:      document.getElementById('heimTeam').value.trim(),
+      auswaertsTeam: document.getElementById('auswaertsTeam').value.trim(),
+      betrag:        parseFloat(document.getElementById('betrag').value),
+      vorname:       document.getElementById('vorname').value.trim(),
+      nachname:      document.getElementById('nachname').value.trim(),
+      email:         document.getElementById('email').value.trim(),
+      kontoinhaber:  document.getElementById('kontoinhaber').value.trim(),
+      iban:          ibanRaw,
+      belegFileName: file.name,
+      belegMimeType: file.type,
+      belegBase64:   fileBase64,
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    try {
+      const res = await fetch(PROXY_URL, {
+        method:   'POST',
+        headers:  { 'Content-Type': 'text/plain' },
+        body:     JSON.stringify(data),
+        redirect: 'follow',
+        signal:   controller.signal,
+      });
+      clearTimeout(timer);
+
+      const text = await res.text();
+      let json;
+      try { json = JSON.parse(text); }
+      catch { throw new Error('Unerwartete Serverantwort: ' + text.substring(0, 300)); }
+
+      if (json.success) {
+        document.getElementById('form').style.display = 'none';
+        document.getElementById('successName').textContent =
+          'Danke, ' + data.vorname + ' ' + data.nachname + '!';
+        document.getElementById('successScreen').style.display = 'block';
+      } else {
+        throw new Error(json.error || 'Unbekannter Fehler');
+      }
+    } catch (err) {
+      clearTimeout(timer);
+      const aborted = err.name === 'AbortError';
+      showMsg(
+        '<strong>' + (aborted ? 'Zeitüberschreitung' : 'Fehler bei der Übermittlung') + ':</strong> '
+        + (aborted ? 'Der Server hat nicht rechtzeitig geantwortet (>90 Sek.).' : err.message)
+        + '<br>Bitte versuche es erneut oder schreibe uns an '
+        + '<a href="mailto:kassenwart@bcerfurt.de">kassenwart@bcerfurt.de</a>.',
+        'err'
+      );
+      setLoading(false);
+    }
+  });
+</script>
+</body>
+</html>
