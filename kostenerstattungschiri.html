@@ -532,30 +532,30 @@
 
       if (json.duplicate) {
         showMsg("⚠️ " + json.error, "err");
-        btn.disabled = false;
-        document.getElementById("btnText").textContent = "Antrag absenden";
-        document.getElementById("spinner").style.display = "none";
-        return;
+        resetBtn(); return;
       }
-
       if (json.success) {
         document.getElementById("mainForm").style.display      = "none";
         document.getElementById("successScreen").style.display = "block";
         document.getElementById("successName").textContent     = "Danke, " + payload.vorname + "!";
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        showMsg("❌ Fehler: " + (json.error || "Unbekannter Fehler."), "err");
-        btn.disabled = false;
-        document.getElementById("btnText").textContent = "Antrag absenden";
-        document.getElementById("spinner").style.display = "none";
+        // Vollständige Fehlermeldung anzeigen (inkl. campai-Details)
+        showMsg("❌ " + (json.error || "Unbekannter Fehler."), "err");
+        resetBtn();
       }
     } catch (err) {
       showMsg("❌ " + (err.name === "AbortError" ? "Zeitüberschreitung. Bitte erneut versuchen." : "Netzwerkfehler: " + err.message), "err");
-      btn.disabled = false;
-      document.getElementById("btnText").textContent = "Antrag absenden";
-      document.getElementById("spinner").style.display = "none";
+      resetBtn();
     }
   });
+
+  function resetBtn() {
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = false;
+    document.getElementById("btnText").textContent = "Antrag absenden";
+    document.getElementById("spinner").style.display = "none";
+  }
 </script>
 </body>
 </html>
