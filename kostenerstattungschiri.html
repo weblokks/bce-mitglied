@@ -165,12 +165,9 @@
 </head>
 <body>
 <div class="card">
-  <div class="logo-wrap">
-    <img src="https://bcerfurt.de/wp-content/uploads/2021/01/BCE_Logo_RGB_Positiv.png"
-         alt="BC Erfurt" onerror="this.style.display='none'">
-  </div>
-  <h1>Schiri-Kostenerstattung</h1>
-  <p class="subtitle">BC Erfurt e.V. · Erstattungsantrag für ausgezahlte Schiedsrichterkosten</p>
+  <h1 style="text-align:center;margin:0 0 4px;font-size:1.25rem;font-weight:800">Antrag Kostenerstattung – Schiedsrichterabrechnung</h1>
+  <p style="text-align:center;font-size:0.82rem;color:#666;margin:0 0 0.9rem">BC Erfurt e.V.</p>
+  <hr style="border:none;border-top:2px solid #111;margin:0 0 1.3rem">
 
   <form id="mainForm" novalidate>
 
@@ -279,7 +276,7 @@
       <div class="consent-row">
         <input type="checkbox" id="bestaetigung" name="bestaetigung" required>
         <label for="bestaetigung">
-          Hiermit bestätige ich, dass ich den genannten Betrag an den/die Schiedsrichter
+          Hiermit bestätige ich, dass ich den/ die genannten Schiedsrichter
           ausgezahlt habe und die Angaben korrekt und vollständig sind.
         </label>
       </div>
@@ -307,7 +304,8 @@
   const MAX_FILE_BYTES   = 5 * 1024 * 1024;
   const MAX_B64_BYTES    = 3.5 * 1024 * 1024;
   const COMPRESS_QUALITY = 0.92;
-  const COMPRESS_W       = 2480;
+  const COMPRESS_W       = 2480;  // ~A4 bei 300 DPI
+  const COMPRESS_H       = 3508;  // A4 Höhe bei 300 DPI
 
   let processedFile = null;
   let aiData        = null;
@@ -514,7 +512,17 @@
         img.onerror = () => reject(new Error('Bild konnte nicht geladen werden.'));
         img.onload  = () => {
           let w = img.width, h = img.height;
-          if (w > COMPRESS_W) { h = Math.round(h * COMPRESS_W / w); w = COMPRESS_W; }
+          // Auf DIN A4 skalieren (max 2480×3508 px bei 300 DPI)
+          const ratio = w / h;
+          if (w > COMPRESS_W || h > COMPRESS_H) {
+            if (ratio > (COMPRESS_W / COMPRESS_H)) {
+              // Breiter als A4 → an Breite anpassen
+              w = COMPRESS_W; h = Math.round(COMPRESS_W / ratio);
+            } else {
+              // Höher als A4 → an Höhe anpassen
+              h = COMPRESS_H; w = Math.round(COMPRESS_H * ratio);
+            }
+          }
           const canvas = document.createElement('canvas');
           canvas.width = w; canvas.height = h;
           const ctx = canvas.getContext('2d');
