@@ -1,285 +1,203 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Antrag Kostenerstattung – BC Erfurt e.V.</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schiri-Kostenerstattung – BC Erfurt</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #111;
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+    .card {
+      max-width: 560px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+      padding: 2rem 2rem 1.5rem;
+    }
+    .logo-wrap { text-align: center; margin-bottom: 1.4rem; }
+    .logo-wrap img { height: 54px; }
+    h1 { font-size: 1.18rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .subtitle { font-size: 0.84rem; color: #666; margin-bottom: 1.5rem; }
+    fieldset {
+      border: 1px solid #e0e0e0;
+      border-radius: 7px;
+      padding: 1rem 1rem 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+    legend {
+      font-weight: 700; font-size: 0.88rem;
+      padding: 0 0.4rem; color: #333;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .fg { margin-bottom: 0.85rem; }
+    .row { display: flex; gap: 0.7rem; }
+    .row .fg { flex: 1; }
+    label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem; color: #333; }
+    .req { color: #c00; }
+    input[type="text"], input[type="email"], input[type="number"], input[type="date"] {
+      border: 1.5px solid #ccc; border-radius: 5px; height: 2.5rem;
+      padding: 0 0.7rem; font-size: 0.92rem; font-family: Arial, sans-serif;
+      background: #fafafa; width: 100%; color: #111;
+      transition: border-color 0.15s, box-shadow 0.15s; display: block;
+    }
+    input:focus {
+      outline: none; border-color: #111;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.08); background: #fff;
+    }
+    input.err { border-color: #c00 !important; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
 
-  body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    color: #111;
-    padding: 1.5rem 1rem;
-  }
+    /* Betrag */
+    .amount-wrap { position: relative; }
+    .amount-wrap input { padding-left: 2.2rem; }
+    .amount-prefix {
+      position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%);
+      font-size: 0.92rem; color: #555; pointer-events: none; z-index: 1;
+    }
 
-  .card {
-    max-width: 660px;
-    margin: 0 auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-    padding: 2rem 1.8rem;
-  }
+    /* Upload */
+    .upload-area {
+      border: 2px dashed #bbb; border-radius: 6px; padding: 1.4rem 1rem;
+      text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      background: #fafafa; position: relative;
+    }
+    .upload-area:hover, .upload-area.drag { border-color: #111; background: #f0f0f0; }
+    .upload-area.has-file { border-color: #1a6e38; background: #f0fff4; }
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+    .upload-text { font-size: 0.88rem; color: #555; line-height: 1.5; }
+    .upload-text strong { color: #111; }
+    .upload-hint { font-size: 0.76rem; color: #888; margin-top: 0.3rem; }
+    #fileInfo { display: none; margin-top: 0.6rem; font-size: 0.82rem; color: #1a6e38; font-weight: 600; }
+    #fileInfo .remove-btn {
+      background: none; border: none; color: #c00; cursor: pointer;
+      font-size: 0.8rem; margin-left: 0.5rem; text-decoration: underline;
+    }
+    #compressInfo { display: none; margin-top: 0.4rem; font-size: 0.78rem; color: #888; font-style: italic; }
+    #previewWrap { display: none; margin-top: 0.7rem; text-align: center; }
+    #previewWrap img { max-width: 100%; max-height: 180px; border-radius: 5px; border: 1px solid #ddd; }
 
-  h1 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #111;
-    margin-bottom: 1.6rem;
-    padding-bottom: 0.8rem;
-    border-bottom: 2px solid #111;
-    text-align: center;
-    line-height: 1.4;
-  }
-  h1 small {
-    display: block;
-    font-size: 0.82rem;
-    font-weight: 400;
-    color: #555;
-    margin-top: 0.25rem;
-    letter-spacing: 0.04em;
-  }
+    /* KI-Box */
+    #aiBox {
+      display: none; margin-top: 0.9rem;
+      border: 1.5px solid #d0e8ff; border-radius: 7px;
+      background: #f0f7ff; padding: 0.85rem 1rem;
+    }
+    .ai-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.83rem; font-weight: 700; color: #1558b0; margin-bottom: 0.5rem;
+    }
+    .ai-header .ai-icon { font-size: 1.1rem; }
+    #aiStatus { font-size: 0.82rem; color: #444; }
+    #aiResult { display: none; margin-top: 0.6rem; font-size: 0.82rem; }
+    .ai-field-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+    .ai-field-label { color: #555; min-width: 80px; }
+    .ai-field-value { font-weight: 700; color: #1a6e38; }
+    .ai-apply-btn {
+      font-size: 0.78rem; color: #1558b0; text-decoration: underline;
+      background: none; border: none; cursor: pointer; margin-left: auto;
+    }
+    #aiWarning {
+      display: none; margin-top: 0.4rem; font-size: 0.8rem; color: #8a5700;
+      background: #fff8e1; border: 1px solid #ffe082; border-radius: 5px; padding: 0.4rem 0.6rem;
+    }
+    .ai-spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(21,88,176,0.25); border-top-color: #1558b0;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 0.3rem;
+    }
+    .ai-hint { font-size: 0.75rem; color: #888; margin-top: 0.25rem; display: none; }
 
-  fieldset {
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 1.1rem 1.2rem 0.5rem;
-    margin-bottom: 1.2rem;
-  }
-  legend {
-    font-weight: 700;
-    font-size: 0.8rem;
-    color: #111;
-    padding: 0 0.4rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
+    /* Consent */
+    .consent-block {
+      background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px;
+      padding: 0.9rem 1rem; margin-bottom: 1.2rem;
+      font-size: 0.85rem; line-height: 1.6; color: #333;
+    }
+    .consent-row { display: flex; align-items: flex-start; gap: 0.6rem; margin-top: 0.5rem; }
+    .consent-row input[type="checkbox"] {
+      width: 1rem; height: 1rem; flex-shrink: 0; margin-top: 0.18rem; accent-color: #111;
+    }
+    .consent-row label { font-weight: 400; font-size: 0.88rem; cursor: pointer; color: #222; }
 
-  .row { display: flex; gap: 0.8rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
-  .fg  { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
-  .fg.sm  { flex: 0 0 120px; }
-  .fg.md  { flex: 0 0 180px; }
-  .fg.full { flex: 0 0 100%; }
-
-  label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.25rem;
-  }
-  .req { color: #c00; margin-left: 1px; }
-
-  input[type="text"],
-  input[type="email"],
-  input[type="date"],
-  input[type="number"] {
-    text-align: left;
-    border: 1.5px solid #bbb;
-    border-radius: 5px;
-    padding: 0.52rem 0.7rem;
-    font-size: 0.92rem;
-    background: #fafafa;
-    width: 100%;
-    color: #111;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  input:focus {
-    outline: none;
-    border-color: #111;
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
-    background: #fff;
-  }
-  input.err { border-color: #c00 !important; }
-
-  /* Upload-Bereich */
-  .upload-area {
-    border: 2px dashed #bbb;
-    border-radius: 6px;
-    padding: 1.4rem 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    background: #fafafa;
-    position: relative;
-  }
-  .upload-area:hover, .upload-area.drag { border-color: #111; background: #f0f0f0; }
-  .upload-area.has-file { border-color: #1a6e38; background: #f0fff4; }
-  .upload-area input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .upload-icon { font-size: 2rem; margin-bottom: 0.4rem; }
-  .upload-text { font-size: 0.88rem; color: #555; line-height: 1.5; }
-  .upload-text strong { color: #111; }
-  .upload-hint { font-size: 0.76rem; color: #888; margin-top: 0.3rem; }
-  #fileInfo {
-    display: none;
-    margin-top: 0.6rem;
-    font-size: 0.82rem;
-    color: #1a6e38;
-    font-weight: 600;
-  }
-  #fileInfo .remove-btn {
-    background: none; border: none; color: #c00; cursor: pointer;
-    font-size: 0.8rem; margin-left: 0.5rem; text-decoration: underline;
-  }
-  /* FIX 4: Komprimierungshinweis */
-  #compressInfo {
-    display: none;
-    margin-top: 0.4rem;
-    font-size: 0.78rem;
-    color: #888;
-    font-style: italic;
-  }
-
-  /* Preview */
-  #previewWrap {
-    display: none;
-    margin-top: 0.7rem;
-    text-align: center;
-  }
-  #previewWrap img {
-    max-width: 100%; max-height: 180px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-  }
-
-  /* Betrag */
-  .amount-wrap { position: relative; }
-  .amount-wrap input { padding-left: 2.2rem; }
-  .amount-prefix {
-    position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%);
-    font-size: 0.92rem; color: #555; pointer-events: none;
-  }
-
-  /* Einwilligung */
-  .consent-block {
-    background: #f7f7f7;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 0.9rem 1rem;
-    margin-bottom: 1.2rem;
-    font-size: 0.85rem;
-    line-height: 1.6;
-    color: #333;
-  }
-  .consent-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    margin-top: 0.5rem;
-  }
-  .consent-row input[type="checkbox"] {
-    width: 1rem; height: 1rem;
-    flex-shrink: 0;
-    margin-top: 0.18rem;
-    accent-color: #111;
-  }
-  .consent-row label {
-    font-weight: 400;
-    font-size: 0.88rem;
-    cursor: pointer;
-    color: #222;
-  }
-
-  .btn {
-    width: 100%;
-    padding: 0.82rem;
-    background: #111;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    letter-spacing: 0.02em;
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  .btn:hover:not(:disabled) { background: #333; }
-  .btn:disabled { background: #aaa; cursor: not-allowed; }
-
-  .spinner {
-    width: 17px; height: 17px;
-    border: 2.5px solid rgba(255,255,255,0.35);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: none;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  #msg {
-    display: none;
-    margin-top: 1rem;
-    padding: 0.85rem 1rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    line-height: 1.5;
-  }
-  #msg.ok  { background: #f0fff4; color: #1a6e38; border: 1px solid #b2dfca; }
-  #msg.err { background: #fff0f0; color: #9a1c1c; border: 1px solid #f5b0b0; }
-
-  #successScreen {
-    display: none;
-    text-align: center;
-    padding: 2.5rem 1rem;
-  }
-  #successScreen .icon { font-size: 3rem; margin-bottom: 1rem; }
-  #successScreen h2 { color: #111; margin-bottom: 0.5rem; }
-  #successScreen p  { color: #555; font-size: 0.93rem; line-height: 1.6; }
-
-  input[type="date"] {
-    text-align: left;
-    display: block;
-    -webkit-text-align: left;
-  }
-  input[type="date"]::-webkit-date-and-time-value {
-    text-align: left;
-  }
-
-  @media (max-width: 480px) {
-    .fg.sm, .fg.md { flex: 0 0 100%; }
-  }
-</style>
+    .btn {
+      width: 100%; padding: 0.82rem; background: #111; color: #fff;
+      border: none; border-radius: 6px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn:hover:not(:disabled) { background: #333; }
+    .btn:disabled { background: #aaa; cursor: not-allowed; }
+    .spinner {
+      width: 17px; height: 17px;
+      border: 2.5px solid rgba(255,255,255,0.35); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #msg {
+      display: none; margin-top: 1rem; padding: 0.85rem 1rem;
+      border-radius: 6px; font-size: 0.88rem; line-height: 1.5;
+    }
+    #msg.err { background: #fff0f0; border: 1px solid #f5c6c6; color: #9b1c1c; }
+    #msg.ok  { background: #f0fff4; border: 1px solid #a7f3c1; color: #1a6e38; }
+    #successScreen { display: none; text-align: center; padding: 2rem 1rem; }
+    #successScreen .icon { font-size: 3rem; margin-bottom: 1rem; }
+    #successScreen h2 { font-size: 1.2rem; margin-bottom: 0.7rem; }
+    #successScreen p { font-size: 0.9rem; color: #444; line-height: 1.6; }
+    @media (max-width: 520px) {
+      .card { padding: 1.3rem 1rem 1.2rem; }
+      .row { flex-direction: column; gap: 0; }
+    }
+  </style>
 </head>
 <body>
 <div class="card">
-  <h1>
-    Antrag Kostenerstattung Schiedsrichterabrechnung
-    <small>BC Erfurt e.V.</small>
-  </h1>
+  <div class="logo-wrap">
+    <img src="https://bcerfurt.de/wp-content/uploads/2021/01/BCE_Logo_RGB_Positiv.png"
+         alt="BC Erfurt" onerror="this.style.display='none'">
+  </div>
+  <h1>Schiri-Kostenerstattung</h1>
+  <p class="subtitle">BC Erfurt e.V. · Erstattungsantrag für ausgezahlte Schiedsrichterkosten</p>
 
-  <form id="form" novalidate>
+  <form id="mainForm" novalidate>
 
-    <!-- Beleg hochladen -->
+    <!-- Beleg-Upload -->
     <fieldset>
-      <legend>Beleg / Quittung</legend>
-      <div class="row">
-        <div class="fg full">
-          <!-- FIX 4: Hinweis auf 5 MB Limit im Label -->
-          <label>Belegdatei <span class="req">*</span> <span style="font-weight:400;color:#888">(max. 5 MB)</span></label>
-          <div class="upload-area" id="uploadArea">
-            <input type="file" id="belegFile" name="belegFile"
-                   accept="image/*,application/pdf"
-                   capture="environment"
-                   onchange="handleFile(this)">
-            <div class="upload-icon">📎</div>
-            <div class="upload-text">
-              <strong>Datei auswählen oder hierher ziehen</strong><br>
-              Auf dem Handy: Foto aufnehmen oder aus Galerie wählen
-            </div>
-            <!-- FIX 4: Limit auf 5 MB angepasst -->
-            <div class="upload-hint">JPG, PNG, PDF · max. 5 MB · Bilder werden automatisch komprimiert</div>
+      <legend>Beleg hochladen</legend>
+      <div class="fg">
+        <label>Beleg / Quittung <span class="req">*</span></label>
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="belegFile" accept="image/*,application/pdf" onchange="handleFile(this)">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text"><strong>Datei auswählen</strong> oder hierher ziehen</div>
+          <div class="upload-hint">JPG, PNG, PDF · max. 5 MB · Bilder werden automatisch komprimiert</div>
+        </div>
+        <div id="compressInfo">⚙️ Bild wird komprimiert …</div>
+        <div id="fileInfo"></div>
+        <div id="previewWrap"><img id="previewImg" src="" alt="Vorschau"></div>
+
+        <!-- KI-Erkennungsbox -->
+        <div id="aiBox">
+          <div class="ai-header">
+            <span class="ai-icon">🤖</span>
+            Azure KI Dokumentenerkennung
           </div>
-          <div id="fileInfo"></div>
-          <!-- FIX 4: Komprimierungshinweis -->
-          <div id="compressInfo">⚙️ Bild wird komprimiert …</div>
-          <div id="previewWrap"><img id="previewImg" src="" alt="Vorschau"></div>
+          <div id="aiStatus">Analysiere Beleg …</div>
+          <div id="aiResult"></div>
+          <div id="aiWarning"></div>
         </div>
       </div>
     </fieldset>
@@ -293,14 +211,17 @@
           <div class="amount-wrap">
             <span class="amount-prefix">€</span>
             <input type="number" id="betrag" name="betrag" required
-                   min="0.01" step="0.01" placeholder="0,00"
-                   style="padding-left:2.2rem">
+                   min="0.01" step="0.01" placeholder="0,00" style="padding-left:2.2rem">
           </div>
+          <div class="ai-hint" id="betragHint">✨ Vom KI erkannt – bitte prüfen</div>
         </div>
         <div class="fg">
           <label for="spielDatum">Datum des Spiels <span class="req">*</span></label>
           <input type="date" id="spielDatum" name="spielDatum" required>
+          <div class="ai-hint" id="datumHint">✨ Vom KI erkannt – bitte prüfen</div>
         </div>
+      </div>
+      <div class="row">
         <div class="fg">
           <label for="spielNummer">Spielnummer <span class="req">*</span></label>
           <input type="text" id="spielNummer" name="spielNummer" required placeholder="z.B. 12345">
@@ -331,26 +252,20 @@
           <input type="text" id="nachname" name="nachname" required autocomplete="family-name">
         </div>
       </div>
-      <div class="row">
-        <div class="fg">
-          <label for="email">E-Mail <span class="req">*</span></label>
-          <input type="email" id="email" name="email" required autocomplete="email">
-        </div>
+      <div class="fg">
+        <label for="email">E-Mail <span class="req">*</span></label>
+        <input type="email" id="email" name="email" required autocomplete="email" inputmode="email">
       </div>
-      <div class="row">
-        <div class="fg">
-          <label for="kontoinhaber">Kontoinhaber <span class="req">*</span></label>
-          <input type="text" id="kontoinhaber" name="kontoinhaber" required autocomplete="name">
-        </div>
+      <div class="fg">
+        <label for="kontoinhaber">Kontoinhaber <span class="req">*</span></label>
+        <input type="text" id="kontoinhaber" name="kontoinhaber" required autocomplete="name">
       </div>
-      <div class="row">
-        <div class="fg">
-          <label for="iban">IBAN <span class="req">*</span></label>
-          <input type="text" id="iban" name="iban"
-                 placeholder="DE00 0000 0000 0000 0000 00"
-                 maxlength="27" autocomplete="off"
-                 oninput="formatIban(this)" required>
-        </div>
+      <div class="fg">
+        <label for="iban">IBAN <span class="req">*</span></label>
+        <input type="text" id="iban" name="iban"
+               placeholder="DE00 0000 0000 0000 0000 00"
+               maxlength="27" autocomplete="off" oninput="formatIban(this)"
+               required autocapitalize="characters" spellcheck="false">
       </div>
     </fieldset>
 
@@ -359,7 +274,8 @@
       <div class="consent-row">
         <input type="checkbox" id="bestaetigung" name="bestaetigung" required>
         <label for="bestaetigung">
-          Hiermit bestätige ich, dass ich den genannten Betrag an den/ die Schiedsrichter ausgezahlt habe und die Angaben korrekt und vollständig sind.
+          Hiermit bestätige ich, dass ich den genannten Betrag an den/die Schiedsrichter
+          ausgezahlt habe und die Angaben korrekt und vollständig sind.
         </label>
       </div>
     </div>
@@ -369,7 +285,6 @@
       <span class="spinner" id="spinner"></span>
     </button>
     <div id="msg"></div>
-
   </form>
 
   <div id="successScreen">
@@ -381,155 +296,165 @@
 </div>
 
 <script>
-  const PROXY_URL  = "https://script.google.com/macros/s/AKfycbzNAdktJbzoDugs1Kn3UV0mQgq10bRFW-a_u2tq45EAgzrPgd-cAem_y8aWOWfhsIlnWg/exec";
-  const TIMEOUT_MS = 90000;
+  // ── Konfiguration ─────────────────────────────────────────
+  const PROXY_URL        = "https://script.google.com/macros/s/AKfycbzNAdktJbzoDugs1Kn3UV0mQgq10bRFW-a_u2tq45EAgzrPgd-cAem_y8aWOWfhsIlnWg/exec";
+  const TIMEOUT_MS       = 90000;
+  const MAX_FILE_BYTES   = 5 * 1024 * 1024;
+  const MAX_B64_BYTES    = 3.5 * 1024 * 1024;
+  const COMPRESS_QUALITY = 0.82;
+  const COMPRESS_W       = 2000;
 
-  // FIX 4: Maximale Gesamtgröße des Base64-Payloads (5 MB Rohgröße → ~6.67 MB Base64)
-  // Wir begrenzen die Rohdatei auf 5 MB und komprimieren Bilder zusätzlich auf max. 3 MB Base64-Ausgabe.
-  const MAX_FILE_BYTES   = 5 * 1024 * 1024;   // 5 MB Rohdatei-Limit
-  const MAX_B64_BYTES    = 3.5 * 1024 * 1024; // ~3.5 MB Base64-Ziel nach Komprimierung
-  const COMPRESS_QUALITY = 0.82;              // JPEG-Qualität beim ersten Versuch
-  const COMPRESS_W       = 2000;              // Max. Breite/Höhe in Pixeln
-
-  // Verarbeitetes Bild (Base64 + Typ) – wird beim Submit genutzt
-  let processedFile = null; // { base64, mimeType, name, origSize, compSize }
+  let processedFile = null;
+  let aiData        = null;
 
   // ── Drag & Drop ───────────────────────────────────────────
   const uploadArea = document.getElementById('uploadArea');
-  uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag'); });
-  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag'));
+  uploadArea.addEventListener('dragover',  e => { e.preventDefault(); uploadArea.classList.add('drag'); });
+  uploadArea.addEventListener('dragleave', ()  => uploadArea.classList.remove('drag'));
   uploadArea.addEventListener('drop', e => {
     e.preventDefault();
     uploadArea.classList.remove('drag');
-    const file = e.dataTransfer.files[0];
-    if (file) applyFile(file);
+    if (e.dataTransfer.files[0]) applyFile(e.dataTransfer.files[0]);
   });
 
-  function handleFile(input) {
-    if (input.files[0]) applyFile(input.files[0]);
-  }
+  function handleFile(input) { if (input.files[0]) applyFile(input.files[0]); }
 
-  // FIX 4: Datei verarbeiten – Bilder komprimieren, PDFs direkt prüfen
+  // ── Datei verarbeiten ─────────────────────────────────────
   async function applyFile(file) {
-    processedFile = null;
-    document.getElementById('fileInfo').style.display = 'none';
-    document.getElementById('previewWrap').style.display = 'none';
-    document.getElementById('compressInfo').style.display = 'none';
+    processedFile = null; aiData = null;
+    ['fileInfo','previewWrap','compressInfo','aiBox','aiResult','aiWarning']
+      .forEach(id => document.getElementById(id).style.display = 'none');
     uploadArea.classList.remove('has-file');
-    uploadArea.style.borderColor = '';
+    document.getElementById('betragHint').style.display = 'none';
+    document.getElementById('datumHint').style.display  = 'none';
 
-    // Rohdatei-Größencheck
     if (file.size > MAX_FILE_BYTES) {
-      showMsg('Die Datei ist zu groß (max. 5 MB). Bitte wähle eine kleinere Datei oder komprimiere sie vorher.', 'err');
-      document.getElementById('belegFile').value = '';
-      return;
+      showMsg('Die Datei ist zu groß (max. 5 MB). Bitte wähle eine kleinere Datei.', 'err'); return;
+    }
+    const isPdf = file.type === 'application/pdf';
+    const isImg = file.type.startsWith('image/');
+    if (!isPdf && !isImg) {
+      showMsg('Nur Bilder (JPG, PNG, …) und PDF-Dateien sind erlaubt.', 'err'); return;
     }
 
-    if (file.type.startsWith('image/')) {
-      // Bild: komprimieren
+    let base64, mimeType = file.type;
+    if (isImg) {
       document.getElementById('compressInfo').style.display = 'block';
       try {
-        const b64 = await compressImage(file, COMPRESS_W, COMPRESS_QUALITY, MAX_B64_BYTES);
+        base64 = await compressImage(file);
         document.getElementById('compressInfo').style.display = 'none';
-        processedFile = {
-          base64:   b64,
-          mimeType: 'image/jpeg',
-          name:     file.name.replace(/\.[^.]+$/, '.jpg'),
-          origSize: file.size,
-          compSize: Math.round(b64.length * 0.75), // approx decoded bytes
-        };
-        showFileInfo(processedFile);
-        showPreview('data:image/jpeg;base64,' + b64);
       } catch (err) {
-        document.getElementById('compressInfo').style.display = 'none';
-        showMsg('Fehler beim Verarbeiten des Bildes: ' + err.message, 'err');
-        document.getElementById('belegFile').value = '';
+        showMsg('Bild konnte nicht verarbeitet werden: ' + err.message, 'err');
+        document.getElementById('compressInfo').style.display = 'none'; return;
       }
     } else {
-      // PDF: nur als Base64 lesen, keine Komprimierung möglich
-      try {
-        const b64 = await readAsBase64(file);
-        // Nochmal prüfen ob Base64-Größe ok
-        if (b64.length * 0.75 > MAX_FILE_BYTES) {
-          showMsg('Die PDF-Datei ist zu groß (max. 5 MB). Bitte komprimiere sie vorher.', 'err');
-          document.getElementById('belegFile').value = '';
-          return;
-        }
-        processedFile = {
-          base64:   b64,
-          mimeType: file.type || 'application/pdf',
-          name:     file.name,
-          origSize: file.size,
-          compSize: file.size,
-        };
-        showFileInfo(processedFile);
-      } catch (err) {
-        showMsg('Datei konnte nicht gelesen werden: ' + err.message, 'err');
-        document.getElementById('belegFile').value = '';
+      base64 = await readAsBase64(file);
+    }
+
+    if (base64.length * 0.75 > MAX_B64_BYTES) {
+      showMsg('Die Datei ist nach Komprimierung noch zu groß. Bitte wähle ein kleineres Bild.', 'err'); return;
+    }
+
+    processedFile = { name: file.name, base64, mimeType, origSize: file.size, compSize: Math.round(base64.length * 0.75) };
+    showFileInfo(processedFile);
+    if (isImg) showPreview('data:' + mimeType + ';base64,' + base64);
+    startAiAnalysis(base64, mimeType);
+  }
+
+  // ── Azure KI Analyse ──────────────────────────────────────
+  async function startAiAnalysis(base64, mimeType) {
+    const aiBox    = document.getElementById('aiBox');
+    const aiStatus = document.getElementById('aiStatus');
+    aiBox.style.display    = 'block';
+    aiStatus.innerHTML     = '<span class="ai-spinner"></span> Beleg wird analysiert …';
+    document.getElementById('aiResult').style.display  = 'none';
+    document.getElementById('aiWarning').style.display = 'none';
+
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 45000);
+      const res  = await fetch(PROXY_URL, {
+        method: 'POST', signal: ctrl.signal,
+        body: JSON.stringify({ action: 'analyze', base64, mimeType }),
+      });
+      clearTimeout(tid);
+      const json = await res.json();
+
+      if (json.success && json.data) {
+        aiData = json.data;
+        aiStatus.textContent = '✅ Erkennung abgeschlossen';
+        showAiResult(json.data);
+      } else {
+        aiStatus.textContent = '';
+        const w = document.getElementById('aiWarning');
+        w.style.display = 'block';
+        w.textContent   = '⚠️ ' + (json.error || 'Erkennung nicht möglich – bitte manuell ausfüllen.');
       }
+    } catch (err) {
+      document.getElementById('aiStatus').textContent = '';
+      const w = document.getElementById('aiWarning');
+      w.style.display = 'block';
+      w.textContent   = '⚠️ KI-Analyse nicht verfügbar – bitte Felder manuell ausfüllen.';
     }
   }
 
-  // Bild auf Canvas komprimieren, ggf. Qualität iterativ reduzieren
-  function compressImage(file, maxDim, quality, maxB64Bytes) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
-      reader.onload = evt => {
-        const img = new Image();
-        img.onerror = () => reject(new Error('Bild konnte nicht dekodiert werden.'));
-        img.onload = () => {
-          let w = img.width, h = img.height;
-          // Skalieren wenn nötig
-          if (w > maxDim || h > maxDim) {
-            if (w >= h) { h = Math.round(h * maxDim / w); w = maxDim; }
-            else        { w = Math.round(w * maxDim / h); h = maxDim; }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-
-          // Qualität iterativ reduzieren bis unter Limit
-          let q = quality;
-          let dataUrl = canvas.toDataURL('image/jpeg', q);
-          while (dataUrl.length > maxB64Bytes * (4/3) && q > 0.3) {
-            q = Math.max(q - 0.1, 0.3);
-            dataUrl = canvas.toDataURL('image/jpeg', q);
-          }
-          if (dataUrl.length > maxB64Bytes * (4/3)) {
-            reject(new Error('Bild konnte nicht ausreichend komprimiert werden. Bitte wähle ein kleineres Bild.'));
-            return;
-          }
-          resolve(dataUrl.split(',')[1]); // nur Base64-Teil
-        };
-        img.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
+  function showAiResult(data) {
+    const el = document.getElementById('aiResult');
+    el.style.display = 'block';
+    let html = '';
+    if (data.betrag) {
+      const fmt = parseFloat(data.betrag).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      html += `<div class="ai-field-row">
+        <span class="ai-field-label">Betrag:</span>
+        <span class="ai-field-value">${fmt} €</span>
+        <button type="button" class="ai-apply-btn" onclick="applyAiBetrag()">Übernehmen</button>
+      </div>`;
+    }
+    if (data.datum) {
+      const [y, m, d] = data.datum.split('-');
+      html += `<div class="ai-field-row">
+        <span class="ai-field-label">Datum:</span>
+        <span class="ai-field-value">${d}.${m}.${y}</span>
+        <button type="button" class="ai-apply-btn" onclick="applyAiDatum()">Übernehmen</button>
+      </div>`;
+    }
+    if (data.betrag || data.datum) {
+      html += `<div style="margin-top:0.5rem">
+        <button type="button" class="ai-apply-btn" style="font-weight:700;font-size:0.85rem"
+                onclick="applyAllAiFields()">↑ Alle erkannten Felder übernehmen</button>
+      </div>`;
+    }
+    if (data.haendler) {
+      html += `<div style="margin-top:0.4rem;font-size:0.78rem;color:#777">Händler: ${data.haendler}</div>`;
+    }
+    el.innerHTML = html;
   }
 
-  // Datei als Base64 lesen (ohne Komprimierung, für PDFs)
-  function readAsBase64(file) {
-    return new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
-      r.onload  = () => resolve(r.result.split(',')[1]);
-      r.readAsDataURL(file);
-    });
+  function applyAiBetrag() {
+    if (!aiData?.betrag) return;
+    document.getElementById('betrag').value = parseFloat(aiData.betrag).toFixed(2);
+    document.getElementById('betrag').classList.remove('err');
+    document.getElementById('betragHint').style.display = 'block';
   }
+  function applyAiDatum() {
+    if (!aiData?.datum) return;
+    document.getElementById('spielDatum').value = aiData.datum;
+    document.getElementById('spielDatum').classList.remove('err');
+    document.getElementById('datumHint').style.display = 'block';
+  }
+  function applyAllAiFields() { applyAiBetrag(); applyAiDatum(); }
 
+  // ── Datei-Info & Vorschau ─────────────────────────────────
   function showFileInfo(pf) {
     uploadArea.classList.add('has-file');
-    const kb   = (pf.origSize / 1024).toFixed(0);
-    const ckb  = (pf.compSize / 1024).toFixed(0);
-    const info = document.getElementById('fileInfo');
-    info.style.display = 'block';
-    const compNote = pf.origSize !== pf.compSize
-      ? ' <span style="color:#888;font-weight:400">(komprimiert: ' + ckb + ' KB)</span>'
-      : '';
-    info.innerHTML = '📄 <strong>' + pf.name + '</strong> (' + kb + ' KB)' + compNote
-      + '<button class="remove-btn" onclick="removeFile()">Entfernen</button>';
+    const kb = (pf.origSize / 1024).toFixed(0);
+    const ckb = (pf.compSize / 1024).toFixed(0);
+    const note = pf.origSize !== pf.compSize
+      ? ' <span style="color:#888;font-weight:400">(komprimiert: ' + ckb + ' KB)</span>' : '';
+    const el = document.getElementById('fileInfo');
+    el.style.display = 'block';
+    el.innerHTML = '📄 <strong>' + pf.name + '</strong> (' + kb + ' KB)' + note
+      + '<button type="button" class="remove-btn" onclick="removeFile()">Entfernen</button>';
   }
 
   function showPreview(src) {
@@ -539,105 +464,97 @@
 
   function removeFile() {
     document.getElementById('belegFile').value = '';
-    processedFile = null;
+    processedFile = null; aiData = null;
     uploadArea.classList.remove('has-file');
     uploadArea.style.borderColor = '';
-    document.getElementById('fileInfo').style.display = 'none';
-    document.getElementById('previewWrap').style.display = 'none';
+    ['fileInfo','previewWrap','compressInfo','aiBox','betragHint','datumHint']
+      .forEach(id => document.getElementById(id).style.display = 'none');
     document.getElementById('previewImg').src = '';
-    document.getElementById('compressInfo').style.display = 'none';
+  }
+
+  // ── Bildkomprimierung ─────────────────────────────────────
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
+      reader.onload  = evt => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Bild konnte nicht geladen werden.'));
+        img.onload  = () => {
+          let w = img.width, h = img.height;
+          if (w > COMPRESS_W) { h = Math.round(h * COMPRESS_W / w); w = COMPRESS_W; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const mime   = file.type === 'image/png' ? 'image/jpeg' : file.type;
+          const dataUrl = canvas.toDataURL(mime, COMPRESS_QUALITY);
+          if (dataUrl.length * 0.75 > MAX_B64_BYTES)
+            return reject(new Error('Bild ist zu groß. Bitte wähle ein kleineres Bild.'));
+          resolve(dataUrl.split(',')[1]);
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function readAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
+      r.onload  = () => resolve(r.result.split(',')[1]);
+      r.readAsDataURL(file);
+    });
   }
 
   // ── IBAN formatieren ──────────────────────────────────────
   function formatIban(el) {
-    let v = el.value.replace(/\s/g,'').toUpperCase();
+    let v = el.value.replace(/\s/g, '').toUpperCase();
     el.value = v.match(/.{1,4}/g)?.join(' ') || v;
   }
 
-  // ── Kontoinhaber vorausfüllen ─────────────────────────────
-  let kontoinhaberManual = false;
-  document.getElementById('kontoinhaber').addEventListener('input', () => { kontoinhaberManual = true; });
-  ['vorname','nachname'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
-      if (kontoinhaberManual) return;
-      const v = document.getElementById('vorname').value.trim();
-      const n = document.getElementById('nachname').value.trim();
-      document.getElementById('kontoinhaber').value = [v, n].filter(Boolean).join(' ');
-    });
-  });
-
   // ── Validierung ───────────────────────────────────────────
   function validate() {
+    const ids = ['betrag','spielDatum','spielNummer','heimTeam','auswaertsTeam',
+                 'vorname','nachname','email','kontoinhaber','iban'];
     let ok = true;
-    ['spielDatum','spielNummer','heimTeam','auswaertsTeam','betrag',
-     'vorname','nachname','email','kontoinhaber','iban'].forEach(id => {
+    ids.forEach(id => {
       const el = document.getElementById(id);
       const empty = !el.value.trim();
       el.classList.toggle('err', empty);
       if (empty) ok = false;
     });
-
-    const emailEl = document.getElementById('email');
-    if (emailEl.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) {
-      emailEl.classList.add('err'); ok = false;
-    }
-
-    const ibanRaw = document.getElementById('iban').value.replace(/\s/g,'');
-    if (ibanRaw && !/^DE\d{20}$/.test(ibanRaw)) {
-      document.getElementById('iban').classList.add('err');
-      showMsg('Bitte eine gültige deutsche IBAN eingeben (DE + 20 Ziffern).', 'err');
-      ok = false;
-    }
-
-    const betrag = parseFloat(document.getElementById('betrag').value);
-    if (!betrag || betrag <= 0) {
-      document.getElementById('betrag').classList.add('err');
-      ok = false;
-    }
-
-    // FIX 4: Prüfen ob Datei verarbeitet wurde
-    if (!processedFile) {
-      uploadArea.style.borderColor = '#c00';
-      showMsg('Bitte einen Beleg hochladen.', 'err');
+    if (!document.getElementById('bestaetigung').checked) {
+      document.getElementById('bestaetigung').style.outline = '2px solid #c00';
       ok = false;
     } else {
-      uploadArea.style.borderColor = '';
+      document.getElementById('bestaetigung').style.outline = '';
     }
-
-    if (!document.getElementById('bestaetigung').checked) {
-      showMsg('Bitte bestätige, dass du den Betrag ausgezahlt hast.', 'err');
-      ok = false;
-    }
-
+    if (!processedFile) { uploadArea.style.borderColor = '#c00'; ok = false; }
+    else                  uploadArea.style.borderColor = '';
     return ok;
   }
 
-  function showMsg(html, type) {
-    const el = document.getElementById('msg');
-    el.className = type;
-    el.innerHTML = html;
-    el.style.display = 'block';
+  function showMsg(text, type) {
+    const m = document.getElementById('msg');
+    m.textContent = text; m.className = type; m.style.display = 'block';
+    m.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  function setLoading(active) {
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = active;
-    document.getElementById('spinner').style.display = active ? 'block' : 'none';
-    document.getElementById('btnText').textContent = active ? 'Wird übermittelt …' : 'Antrag absenden';
-  }
-
-  // ── Submit ────────────────────────────────────────────────
-  document.getElementById('form').addEventListener('submit', async function(e) {
+  // ── Formular absenden ─────────────────────────────────────
+  document.getElementById('mainForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     document.getElementById('msg').style.display = 'none';
-    if (!validate()) return;
+    if (!validate()) {
+      showMsg('Bitte fülle alle Pflichtfelder aus und lade einen Beleg hoch.', 'err'); return;
+    }
 
-    setLoading(true);
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    document.getElementById('btnText').textContent = 'Wird gesendet …';
+    document.getElementById('spinner').style.display = 'inline-block';
 
-    const ibanRaw = document.getElementById('iban').value.replace(/\s/g,'');
-
-    // FIX 4: processedFile statt roher FileReader-Daten verwenden
-    const data = {
+    const payload = {
       spielDatum:    document.getElementById('spielDatum').value,
       spielNummer:   document.getElementById('spielNummer').value.trim(),
       heimTeam:      document.getElementById('heimTeam').value.trim(),
@@ -647,49 +564,35 @@
       nachname:      document.getElementById('nachname').value.trim(),
       email:         document.getElementById('email').value.trim(),
       kontoinhaber:  document.getElementById('kontoinhaber').value.trim(),
-      iban:          ibanRaw,
+      iban:          document.getElementById('iban').value.replace(/\s/g, '').toUpperCase(),
       belegFileName: processedFile.name,
       belegMimeType: processedFile.mimeType,
       belegBase64:   processedFile.base64,
     };
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
     try {
-      const res = await fetch(PROXY_URL, {
-        method:   'POST',
-        headers:  { 'Content-Type': 'text/plain' },
-        body:     JSON.stringify(data),
-        redirect: 'follow',
-        signal:   controller.signal,
-      });
-      clearTimeout(timer);
-
-      const text = await res.text();
-      let json;
-      try { json = JSON.parse(text); }
-      catch { throw new Error('Unerwartete Serverantwort: ' + text.substring(0, 300)); }
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+      const res  = await fetch(PROXY_URL, { method: 'POST', signal: ctrl.signal, body: JSON.stringify(payload) });
+      clearTimeout(tid);
+      const json = await res.json();
 
       if (json.success) {
-        document.getElementById('form').style.display = 'none';
-        document.getElementById('successName').textContent =
-          'Danke, ' + data.vorname + ' ' + data.nachname + '!';
+        document.getElementById('mainForm').style.display      = 'none';
         document.getElementById('successScreen').style.display = 'block';
+        document.getElementById('successName').textContent     = 'Danke, ' + payload.vorname + '!';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        throw new Error(json.error || 'Unbekannter Fehler');
+        showMsg('❌ Fehler: ' + (json.error || 'Unbekannter Fehler aufgetreten.'), 'err');
+        btn.disabled = false;
+        document.getElementById('btnText').textContent = 'Antrag absenden';
+        document.getElementById('spinner').style.display = 'none';
       }
     } catch (err) {
-      clearTimeout(timer);
-      const aborted = err.name === 'AbortError';
-      showMsg(
-        '<strong>' + (aborted ? 'Zeitüberschreitung' : 'Fehler bei der Übermittlung') + ':</strong> '
-        + (aborted ? 'Der Server hat nicht rechtzeitig geantwortet (>90 Sek.).' : err.message)
-        + '<br>Bitte versuche es erneut oder schreibe uns an '
-        + '<a href="mailto:kassenwart@bcerfurt.de">kassenwart@bcerfurt.de</a>.',
-        'err'
-      );
-      setLoading(false);
+      showMsg('❌ ' + (err.name === 'AbortError' ? 'Zeitüberschreitung. Bitte erneut versuchen.' : 'Netzwerkfehler: ' + err.message), 'err');
+      btn.disabled = false;
+      document.getElementById('btnText').textContent = 'Antrag absenden';
+      document.getElementById('spinner').style.display = 'none';
     }
   });
 </script>
