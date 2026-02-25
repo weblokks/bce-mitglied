@@ -46,14 +46,14 @@
     .upload-hint { font-size: .76rem; color: #888; margin-top: .25rem; }
     #fileList { margin-top: .6rem; }
     .file-item { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: #1a6e38; font-weight: 600; margin-bottom: .25rem; }
-    .file-item button { background: none; border: none; color: #c00; cursor: pointer; font-size: .78rem; margin-left: auto; text-decoration: underline; }
+    .file-rm { background: none; border: none; color: #c00; cursor: pointer; font-size: .78rem; margin-left: auto; text-decoration: underline; }
     .file-sz { font-weight: 400; color: #888; }
     .consent-block { background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px; padding: .9rem 1rem; margin-bottom: 1.2rem; }
     .consent-row { display: flex; align-items: flex-start; gap: .6rem; margin-top: .4rem; }
     .consent-row input[type="checkbox"] { width: 1rem; height: 1rem; flex-shrink: 0; margin-top: .18rem; accent-color: #111; }
     .consent-row label { font-size: .88rem; cursor: pointer; color: #222; line-height: 1.5; }
-    #submitBtn { width: 100%; padding: .82rem; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .5rem; transition: background .15s; margin-top: .5rem; }
-    #submitBtn:hover:not(:disabled) { background: #333; }
+    #submitBtn { width: 100%; padding: .82rem; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .5rem; transition: background .15s; }
+    #submitBtn:hover { background: #333; }
     #submitBtn:disabled { background: #aaa; cursor: not-allowed; }
     .spin { width: 17px; height: 17px; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: rot .7s linear infinite; display: none; }
     @keyframes rot { to { transform: rotate(360deg); } }
@@ -64,11 +64,17 @@
     #successScreen .ico { font-size: 3rem; margin-bottom: 1rem; }
     #successScreen h2 { font-size: 1.2rem; margin-bottom: .7rem; }
     #successScreen p  { font-size: .9rem; color: #444; line-height: 1.6; }
+    /* Debug-Banner */
+    #debugBanner { background: #1a6e38; color: #fff; text-align: center; font-size: .78rem; padding: .35rem .5rem; border-radius: 5px; margin-bottom: 1rem; letter-spacing: .02em; }
     @media (max-width: 520px) { .card { padding: 1.3rem 1rem; } .row { flex-direction: column; gap: 0; } }
   </style>
 </head>
 <body>
 <div class="card">
+
+  <!-- Versions-Banner: zeigt an welche Datei wirklich geladen wurde -->
+  <div id="debugBanner">⚙️ V05 – wird initialisiert …</div>
+
   <h1>Antrag Erstattung Fahrtkosten</h1>
   <p class="subtitle">BC Erfurt e.V.</p>
   <hr class="divider">
@@ -83,7 +89,7 @@
         </div>
         <div class="fg">
           <label for="zielort">Zielort <span class="req">*</span></label>
-          <input type="text" id="zielort" placeholder="z.B. Berlin">
+          <input type="text" id="zielort" placeholder="z.B. Gera">
         </div>
       </div>
       <div class="fg">
@@ -171,314 +177,305 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     Script steht NACH allen HTML-Elementen → DOM garantiert bereit
-     Kein DOMContentLoaded nötig, kein IIFE-Closure-Problem
-     ═══════════════════════════════════════════════════════ -->
 <script>
-  /* ── Konstanten ──────────────────────────────────── */
-  var PROXY   = "https://script.google.com/macros/s/AKfycbzXYobUIQuU47SRntyeRXL32LBJW-DtZA4dsOeYLXOSfP6x6E5g2nm0REQhcRKy3zjM/exec";
-  var RATE    = 0.15;
-  var MAX_B   = 5 * 1024 * 1024;
-  var TIMEOUT = 90000;
+/* ═══════════════════════════════════════════════════════════
+   BCE Fahrtkosten V05
+   Script steht nach allen HTML-Tags → DOM sofort verfügbar
+   ═══════════════════════════════════════════════════════════ */
 
-  /* ── Zustand ─────────────────────────────────────── */
-  var uploadedFiles = [];
-  var kmVomServer   = null;
-  var kmWarnOk      = false;
-  var kinhManual    = false;
+var PROXY   = "https://script.google.com/macros/s/AKfycbzXYobUIQuU47SRntyeRXL32LBJW-DtZA4dsOeYLXOSfP6x6E5g2nm0REQhcRKy3zjM/exec";
+var RATE    = 0.15;
+var MAX_B   = 5 * 1024 * 1024;
+var TIMEOUT = 90000;
 
-  /* ── DOM-Elemente direkt referenzieren ───────────── */
-  var inKm    = document.getElementById("kilometer");
-  var inVorn  = document.getElementById("vorname");
-  var inNach  = document.getElementById("nachname");
-  var inKinh  = document.getElementById("kontoinhaber");
-  var inIban  = document.getElementById("iban");
-  var inZiel  = document.getElementById("zielort");
-  var boxBet  = document.getElementById("betragBox");
-  var hintKm  = document.getElementById("kmCalcHint");
-  var btnSend = document.getElementById("submitBtn");
-  var divMsg  = document.getElementById("msg");
+var uploads     = [];
+var kmServer    = null;
+var kmWarnDone  = false;
+var kinhTouched = false;
 
-  /* ══════════════════════════════════════════════════
-     BETRAG BERECHNEN
-     ══════════════════════════════════════════════════ */
-  function calcBetrag() {
-    var km = parseFloat(inKm.value);
-    if (km > 0) {
-      boxBet.textContent = (km * RATE).toLocaleString("de-DE",
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+/* ── Alle Felder direkt holen ── */
+var fReiseDatum  = document.getElementById("reiseDatum");
+var fZielort     = document.getElementById("zielort");
+var fAnlass      = document.getElementById("anlass");
+var fMitreisende = document.getElementById("mitreisende");
+var fKilometer   = document.getElementById("kilometer");
+var fVorname     = document.getElementById("vorname");
+var fNachname    = document.getElementById("nachname");
+var fEmail       = document.getElementById("email");
+var fKontoinhaber= document.getElementById("kontoinhaber");
+var fIban        = document.getElementById("iban");
+var boxBetrag    = document.getElementById("betragBox");
+var hintKmCalc   = document.getElementById("kmCalcHint");
+var btnSubmit    = document.getElementById("submitBtn");
+var elMsg        = document.getElementById("msg");
+var elUpArea     = document.getElementById("uploadArea");
+var elFileList   = document.getElementById("fileList");
+var elFileInput  = document.getElementById("fileInput");
+
+/* Debug-Banner: zeigt dass Script korrekt geladen + DOM lesbar */
+document.getElementById("debugBanner").textContent =
+  "✅ V05 geladen – " + Object.keys({
+    reiseDatum: fReiseDatum, zielort: fZielort, kilometer: fKilometer,
+    submitBtn: btnSubmit, kontoinhaber: fKontoinhaber
+  }).filter(function(k) {
+    return ({reiseDatum:fReiseDatum,zielort:fZielort,kilometer:fKilometer,
+             submitBtn:btnSubmit,kontoinhaber:fKontoinhaber})[k] !== null;
+  }).length + "/5 Felder gefunden";
+
+/* ══════════════════════════════════════════════════════════
+   BETRAG
+   ══════════════════════════════════════════════════════════ */
+function berechneBetrag() {
+  var km = parseFloat(fKilometer.value);
+  boxBetrag.textContent = (km > 0)
+    ? (km * RATE).toLocaleString("de-DE", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €"
+    : "– €";
+  kmWarnDone = false;
+}
+fKilometer.addEventListener("input",  berechneBetrag);
+fKilometer.addEventListener("change", berechneBetrag);
+
+/* ══════════════════════════════════════════════════════════
+   IBAN
+   ══════════════════════════════════════════════════════════ */
+fIban.addEventListener("input", function() {
+  var v = fIban.value.replace(/\s/g,"").toUpperCase();
+  var m = v.match(/.{1,4}/g);
+  fIban.value = m ? m.join(" ") : v;
+});
+
+/* ══════════════════════════════════════════════════════════
+   KONTOINHABER AUTO-FILL
+   ══════════════════════════════════════════════════════════ */
+fKontoinhaber.addEventListener("input", function() { kinhTouched = true; });
+
+function syncKontoinhaber() {
+  if (kinhTouched) return;
+  var v = fVorname.value.trim();
+  var n = fNachname.value.trim();
+  var full = (v + " " + n).trim();
+  if (full) fKontoinhaber.value = full;
+}
+fVorname.addEventListener("blur",  syncKontoinhaber);
+fNachname.addEventListener("blur", syncKontoinhaber);
+
+/* ══════════════════════════════════════════════════════════
+   ZIELORT → LUFTLINIE
+   ══════════════════════════════════════════════════════════ */
+fZielort.addEventListener("blur", function() {
+  var z = fZielort.value.trim();
+  if (!z) return;
+  hintKmCalc.textContent  = "📍 Berechne Luftlinie …";
+  hintKmCalc.style.display = "block";
+  fetch(PROXY, {
+    method: "POST",
+    body:   JSON.stringify({ action: "checkKm", zielort: z, kmUser: parseFloat(fKilometer.value) || 0 })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(j) {
+    if (j.success && j.kmCalc) {
+      kmServer = j.kmCalc;
+      hintKmCalc.textContent = "📍 Luftlinie Erfurt → " + z + ": ca. " + j.kmCalc + " km (H+R)";
+      if (!(parseFloat(fKilometer.value) > 0)) {
+        fKilometer.value = j.kmCalc;
+        berechneBetrag();
+      }
     } else {
-      boxBet.textContent = "– €";
+      hintKmCalc.style.display = "none";
     }
-    kmWarnOk = false;
-  }
+  })
+  .catch(function() { hintKmCalc.style.display = "none"; });
+});
 
-  inKm.addEventListener("input",  calcBetrag);
-  inKm.addEventListener("change", calcBetrag);
+/* ══════════════════════════════════════════════════════════
+   UPLOAD
+   ══════════════════════════════════════════════════════════ */
+elUpArea.addEventListener("dragover", function(e) {
+  e.preventDefault();
+  elUpArea.style.borderColor = "#111";
+  elUpArea.style.background  = "#f0f0f0";
+});
+elUpArea.addEventListener("dragleave", function() {
+  elUpArea.style.borderColor = "";
+  elUpArea.style.background  = "";
+});
+elUpArea.addEventListener("drop", function(e) {
+  e.preventDefault();
+  elUpArea.style.borderColor = "";
+  elUpArea.style.background  = "";
+  leseFiles(e.dataTransfer.files);
+});
+elFileInput.addEventListener("change", function() {
+  leseFiles(elFileInput.files);
+  elFileInput.value = "";
+});
 
-  /* ══════════════════════════════════════════════════
-     IBAN FORMATIEREN
-     ══════════════════════════════════════════════════ */
-  inIban.addEventListener("input", function() {
-    var v = this.value.replace(/\s/g, "").toUpperCase();
-    var m = v.match(/.{1,4}/g);
-    this.value = m ? m.join(" ") : v;
-  });
-
-  /* ══════════════════════════════════════════════════
-     KONTOINHABER AUTO-FILL
-     ══════════════════════════════════════════════════ */
-  inKinh.addEventListener("input", function() {
-    kinhManual = true;
-  });
-
-  function fillKontoinhaber() {
-    if (kinhManual) return;
-    var v = inVorn.value.trim();
-    var n = inNach.value.trim();
-    if (v || n) {
-      inKinh.value = (v + " " + n).trim();
+function leseFiles(flist) {
+  var arr = Array.prototype.slice.call(flist);
+  arr.forEach(function(f) {
+    if (f.size > MAX_B) { zeigeMsg("„" + f.name + "" zu groß (max. 5 MB).", "err"); return; }
+    if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
+      zeigeMsg("„" + f.name + "" – nur Bilder/PDF.", "err"); return;
     }
-  }
+    for (var i = 0; i < uploads.length; i++) {
+      if (uploads[i].name === f.name && uploads[i].size === f.size) return;
+    }
+    var rd = new FileReader();
+    rd.onload = function() {
+      uploads.push({ name: f.name, base64: rd.result.split(",")[1], mimeType: f.type, size: f.size });
+      renderFiles();
+    };
+    rd.readAsDataURL(f);
+  });
+}
 
-  inVorn.addEventListener("blur", fillKontoinhaber);
-  inNach.addEventListener("blur", fillKontoinhaber);
-
-  /* ══════════════════════════════════════════════════
-     ZIELORT BLUR → LUFTLINIE VOM BACKEND
-     ══════════════════════════════════════════════════ */
-  inZiel.addEventListener("blur", function() {
-    var z = inZiel.value.trim();
-    if (!z) return;
-    hintKm.textContent  = "📍 Berechne Luftlinie …";
-    hintKm.style.display = "block";
-
-    fetch(PROXY, {
-      method: "POST",
-      body:   JSON.stringify({ action: "checkKm", zielort: z, kmUser: parseFloat(inKm.value) || 0 })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(j) {
-      if (j.success && j.kmCalc) {
-        kmVomServer = j.kmCalc;
-        hintKm.textContent = "📍 Luftlinie Erfurt → " + z + ": ca. " + j.kmCalc + " km (H+R)";
-        if (!(parseFloat(inKm.value) > 0)) {
-          inKm.value = j.kmCalc;
-          calcBetrag();
-        }
-      } else {
-        hintKm.style.display = "none";
-      }
-    })
-    .catch(function() {
-      hintKm.style.display = "none";
+function renderFiles() {
+  if (!uploads.length) { elFileList.innerHTML = ""; elUpArea.classList.remove("has-file"); return; }
+  elUpArea.classList.add("has-file");
+  elFileList.innerHTML = uploads.map(function(f, i) {
+    return '<div class="file-item">'
+      + '<span>📄</span>'
+      + '<span><strong>' + f.name + '</strong> <span class="file-sz">(' + Math.round(f.size/1024) + ' KB)</span></span>'
+      + '<button type="button" class="file-rm" data-idx="' + i + '">Entfernen</button>'
+      + '</div>';
+  }).join("");
+  /* Event-Delegation statt onclick-Attribut */
+  elFileList.querySelectorAll(".file-rm").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      uploads.splice(parseInt(btn.getAttribute("data-idx"), 10), 1);
+      renderFiles();
     });
   });
+}
 
-  /* ══════════════════════════════════════════════════
-     DATEI-UPLOAD
-     ══════════════════════════════════════════════════ */
-  var uploadArea = document.getElementById("uploadArea");
-  var fileInput  = document.getElementById("fileInput");
-  var fileList   = document.getElementById("fileList");
-
-  uploadArea.addEventListener("dragover", function(e) {
-    e.preventDefault();
-    uploadArea.style.borderColor = "#111";
-    uploadArea.style.background  = "#f0f0f0";
-  });
-  uploadArea.addEventListener("dragleave", function() {
-    uploadArea.style.borderColor = "";
-    uploadArea.style.background  = "";
-  });
-  uploadArea.addEventListener("drop", function(e) {
-    e.preventDefault();
-    uploadArea.style.borderColor = "";
-    uploadArea.style.background  = "";
-    verarbeiteFiles(e.dataTransfer.files);
-  });
-  fileInput.addEventListener("change", function() {
-    verarbeiteFiles(this.files);
-    this.value = "";
+/* ══════════════════════════════════════════════════════════
+   VALIDIERUNG
+   ══════════════════════════════════════════════════════════ */
+function validate() {
+  var felder = [fReiseDatum, fZielort, fAnlass, fMitreisende, fKilometer,
+                fVorname, fNachname, fEmail, fKontoinhaber, fIban];
+  var ok = true;
+  felder.forEach(function(el) {
+    if (!el.value.trim()) { el.classList.add("err"); ok = false; }
+    else                   { el.classList.remove("err"); }
   });
 
-  function verarbeiteFiles(flist) {
-    var arr = Array.prototype.slice.call(flist);
-    arr.forEach(function(f) {
-      if (f.size > MAX_B) { zeigMsg("„" + f.name + "" zu groß (max. 5 MB).", "err"); return; }
-      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
-        zeigMsg("„" + f.name + "" – nur Bilder/PDF.", "err"); return;
-      }
-      var dup = uploadedFiles.some(function(x) { return x.name === f.name && x.size === f.size; });
-      if (dup) return;
-      var rd = new FileReader();
-      rd.onload = function() {
-        uploadedFiles.push({ name: f.name, base64: rd.result.split(",")[1], mimeType: f.type, size: f.size });
-        renderFiles();
-      };
-      rd.readAsDataURL(f);
-    });
-  }
-
-  function renderFiles() {
-    if (!uploadedFiles.length) {
-      fileList.innerHTML = "";
-      uploadArea.classList.remove("has-file");
-      return;
-    }
-    uploadArea.classList.add("has-file");
-    fileList.innerHTML = uploadedFiles.map(function(f, i) {
-      return '<div class="file-item">'
-        + '<span>📄</span>'
-        + '<span><strong>' + f.name + '</strong> <span class="file-sz">(' + Math.round(f.size/1024) + ' KB)</span></span>'
-        + '<button type="button" onclick="removeFile(' + i + ')">Entfernen</button>'
-        + '</div>';
-    }).join("");
-  }
-
-  function removeFile(i) {
-    uploadedFiles.splice(i, 1);
-    renderFiles();
-  }
-
-  /* ══════════════════════════════════════════════════
-     VALIDIERUNG
-     ══════════════════════════════════════════════════ */
-  function validate() {
-    var ids = ["reiseDatum","zielort","anlass","mitreisende","kilometer",
-               "vorname","nachname","email","kontoinhaber","iban"];
-    var ok = true;
-
-    ids.forEach(function(id) {
-      var el = document.getElementById(id);
-      if (!el.value.trim()) { el.classList.add("err"); ok = false; }
-      else                   { el.classList.remove("err"); }
-    });
-
-    /* Datumsprüfung */
-    var dEl = document.getElementById("reiseDatum");
-    if (dEl.value) {
-      var dat   = new Date(dEl.value);
-      var heute = new Date(); heute.setHours(0,0,0,0);
-      var diff  = Math.floor((heute - dat) / 86400000);
-      if (dat.getFullYear() !== heute.getFullYear()) {
-        dEl.classList.add("err");
-        zeigMsg("Anträge nur für Reisen im laufenden Kalenderjahr möglich.", "err");
-        ok = false;
-      } else if (diff > 30) {
-        dEl.classList.add("err");
-        zeigMsg("Anträge nur bis zu 30 Tage nach der Reise möglich.", "err");
-        ok = false;
-      }
-    }
-
-    /* km > 0 */
-    if (!(parseFloat(inKm.value) > 0)) {
-      inKm.classList.add("err");
+  /* Datum */
+  if (fReiseDatum.value) {
+    var dat   = new Date(fReiseDatum.value);
+    var heute = new Date(); heute.setHours(0,0,0,0);
+    var diff  = Math.floor((heute - dat) / 86400000);
+    if (dat.getFullYear() !== heute.getFullYear()) {
+      fReiseDatum.classList.add("err");
+      zeigeMsg("Anträge nur für Reisen im laufenden Kalenderjahr möglich.", "err");
+      ok = false;
+    } else if (diff > 30) {
+      fReiseDatum.classList.add("err");
+      zeigeMsg("Anträge nur bis zu 30 Tage nach der Reise möglich.", "err");
       ok = false;
     }
-
-    /* Checkbox */
-    var cb = document.getElementById("bestaetigung");
-    if (!cb.checked) { cb.style.outline = "2px solid #c00"; ok = false; }
-    else              { cb.style.outline = ""; }
-
-    return ok;
   }
 
-  /* ══════════════════════════════════════════════════
-     HILFSFUNKTIONEN
-     ══════════════════════════════════════════════════ */
-  function zeigMsg(txt, cls) {
-    divMsg.textContent   = txt;
-    divMsg.className     = cls;
-    divMsg.style.display = "block";
-    divMsg.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  /* km */
+  if (!(parseFloat(fKilometer.value) > 0)) { fKilometer.classList.add("err"); ok = false; }
+
+  /* Checkbox */
+  var cb = document.getElementById("bestaetigung");
+  if (!cb.checked) { cb.style.outline = "2px solid #c00"; ok = false; }
+  else              { cb.style.outline = ""; }
+
+  return ok;
+}
+
+/* ══════════════════════════════════════════════════════════
+   HILFSFUNKTIONEN
+   ══════════════════════════════════════════════════════════ */
+function zeigeMsg(txt, cls) {
+  elMsg.textContent   = txt;
+  elMsg.className     = cls;
+  elMsg.style.display = "block";
+  elMsg.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function setBusy(b) {
+  btnSubmit.disabled                              = b;
+  document.getElementById("btnTxt").textContent  = b ? "Wird gesendet …" : "Antrag absenden";
+  document.getElementById("spin").style.display  = b ? "inline-block" : "none";
+}
+
+/* ══════════════════════════════════════════════════════════
+   SUBMIT
+   ══════════════════════════════════════════════════════════ */
+btnSubmit.addEventListener("click", function() {
+  elMsg.style.display = "none";
+
+  if (!validate()) {
+    zeigeMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err");
+    return;
   }
 
-  function setBusy(busy) {
-    btnSend.disabled                           = busy;
-    document.getElementById("btnTxt").textContent = busy ? "Wird gesendet …" : "Antrag absenden";
-    document.getElementById("spin").style.display = busy ? "inline-block" : "none";
-  }
+  var km = parseFloat(fKilometer.value);
 
-  /* ══════════════════════════════════════════════════
-     SUBMIT
-     ══════════════════════════════════════════════════ */
-  btnSend.addEventListener("click", function() {
-
-    divMsg.style.display = "none";
-
-    if (!validate()) {
-      zeigMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err");
-      return;
+  /* KM-Abweichungs-Dialog */
+  if (kmServer !== null && !kmWarnDone) {
+    var abw = (km - kmServer) / kmServer;
+    if (abw > 0.20) {
+      kmWarnDone = true;
+      if (!confirm(
+        "⚠️ Hinweis zur Kilometerangabe\n\n"
+        + "Angegeben: " + km + " km\n"
+        + "Luftlinie Erfurt → " + fZielort.value.trim() + " (H+R): ca. " + kmServer + " km\n"
+        + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: 20%)\n\n"
+        + "Trotzdem absenden?\n(Luftlinie wird in der Beschreibung vermerkt.)"
+      )) return;
     }
+  }
 
-    var km = parseFloat(inKm.value);
+  var betrag = Math.round(km * RATE * 100) / 100;
+  setBusy(true);
 
-    /* KM-Abweichungs-Dialog */
-    if (kmVomServer !== null && !kmWarnOk) {
-      var abw = (km - kmVomServer) / kmVomServer;
-      if (abw > 0.20) {
-        kmWarnOk = true;
-        var weiter = confirm(
-          "⚠️ Hinweis zur Kilometerangabe\n\n"
-          + "Angegeben: " + km + " km\n"
-          + "Luftlinie Erfurt → " + inZiel.value.trim() + " (H+R): ca. " + kmVomServer + " km\n"
-          + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: 20%)\n\n"
-          + "Trotzdem absenden? (Luftlinie wird in der Beschreibung vermerkt.)"
-        );
-        if (!weiter) return;
-      }
-    }
+  var payload = {
+    reiseDatum:   fReiseDatum.value,
+    zielort:      fZielort.value.trim(),
+    anlass:       fAnlass.value.trim(),
+    mitreisende:  parseInt(fMitreisende.value, 10),
+    kilometer:    km,
+    betrag:       betrag,
+    vorname:      fVorname.value.trim(),
+    nachname:     fNachname.value.trim(),
+    email:        fEmail.value.trim(),
+    kontoinhaber: fKontoinhaber.value.trim(),
+    iban:         fIban.value.replace(/\s/g,"").toUpperCase(),
+    belege:       uploads.map(function(f) {
+                    return { fileName: f.name, mimeType: f.mimeType, base64: f.base64 };
+                  })
+  };
 
-    var betrag = Math.round(km * RATE * 100) / 100;
-    setBusy(true);
+  var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+  var tid  = setTimeout(function() { if (ctrl) ctrl.abort(); }, TIMEOUT);
+  var opts = { method: "POST", body: JSON.stringify(payload) };
+  if (ctrl) opts.signal = ctrl.signal;
 
-    var payload = {
-      reiseDatum:   document.getElementById("reiseDatum").value,
-      zielort:      inZiel.value.trim(),
-      anlass:       document.getElementById("anlass").value.trim(),
-      mitreisende:  parseInt(document.getElementById("mitreisende").value, 10),
-      kilometer:    km,
-      betrag:       betrag,
-      vorname:      inVorn.value.trim(),
-      nachname:     inNach.value.trim(),
-      email:        document.getElementById("email").value.trim(),
-      kontoinhaber: inKinh.value.trim(),
-      iban:         inIban.value.replace(/\s/g, "").toUpperCase(),
-      belege:       uploadedFiles.map(function(f) {
-                      return { fileName: f.name, mimeType: f.mimeType, base64: f.base64 };
-                    })
-    };
-
-    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
-    var tid  = setTimeout(function() { if (ctrl) ctrl.abort(); }, TIMEOUT);
-    var opts = { method: "POST", body: JSON.stringify(payload) };
-    if (ctrl) opts.signal = ctrl.signal;
-
-    fetch(PROXY, opts)
-      .then(function(r)  { clearTimeout(tid); return r.json(); })
-      .then(function(j)  {
-        if (j.success) {
-          document.getElementById("formWrap").style.display    = "none";
-          document.getElementById("successScreen").style.display = "block";
-          document.getElementById("okName").textContent        = "Danke, " + payload.vorname + "!";
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        } else {
-          zeigMsg("❌ " + (j.error || "Unbekannter Fehler."), "err");
-          setBusy(false);
-        }
-      })
-      .catch(function(e) {
-        clearTimeout(tid);
-        zeigMsg("❌ " + (e.name === "AbortError"
-          ? "Zeitüberschreitung – bitte erneut versuchen."
-          : "Netzwerkfehler: " + e.message), "err");
+  fetch(PROXY, opts)
+    .then(function(r)  { clearTimeout(tid); return r.json(); })
+    .then(function(j)  {
+      if (j.success) {
+        document.getElementById("formWrap").style.display      = "none";
+        document.getElementById("successScreen").style.display = "block";
+        document.getElementById("okName").textContent          = "Danke, " + payload.vorname + "!";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        zeigeMsg("❌ " + (j.error || "Unbekannter Fehler."), "err");
         setBusy(false);
-      });
-  });
+      }
+    })
+    .catch(function(e) {
+      clearTimeout(tid);
+      zeigeMsg("❌ " + (e.name === "AbortError"
+        ? "Zeitüberschreitung – bitte erneut versuchen."
+        : "Netzwerkfehler: " + e.message), "err");
+      setBusy(false);
+    });
+});
 
 </script>
 </body>
