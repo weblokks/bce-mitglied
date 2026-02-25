@@ -32,8 +32,8 @@
     input[type="number"] { -moz-appearance: textfield; }
     .km-wrap { position: relative; }
     .km-suffix { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); font-size: .88rem; color: #888; pointer-events: none; }
-    .km-hint  { font-size: .75rem; color: #888; margin-top: .3rem; }
-    .km-calc  { font-size: .75rem; color: #1558b0; margin-top: .3rem; display: none; }
+    .km-hint { font-size: .75rem; color: #888; margin-top: .3rem; }
+    .km-calc { font-size: .75rem; color: #1558b0; margin-top: .3rem; display: none; }
     .betrag-display { background: #f0f7ff; border: 1.5px solid #b3d4f0; border-radius: 5px; height: 2.5rem; display: flex; align-items: center; padding: 0 .75rem; font-size: 1.05rem; font-weight: 700; color: #1558b0; }
     .betrag-note { font-size: .74rem; color: #888; margin-top: .28rem; }
     .upload-area { border: 2px dashed #bbb; border-radius: 6px; padding: 1.2rem 1rem; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; background: #fafafa; position: relative; }
@@ -73,12 +73,11 @@
   <p class="subtitle">BC Erfurt e.V.</p>
   <hr class="divider">
 
-  <form id="mainForm" novalidate>
+  <!-- onsubmit="return false" verhindert nativen Browser-Submit als zweite Sicherheitsebene -->
+  <form id="mainForm" novalidate onsubmit="return false;">
 
-    <!-- Reisedaten -->
     <fieldset>
       <legend>Reisedaten</legend>
-
       <div class="row">
         <div class="fg">
           <label for="reiseDatum">Reisedatum <span class="req">*</span></label>
@@ -89,17 +88,14 @@
           <input type="text" id="zielort" name="zielort" required placeholder="z.B. Berlin">
         </div>
       </div>
-
       <div class="fg">
         <label for="anlass">Anlass der Reise / Spiel <span class="req">*</span></label>
         <textarea id="anlass" name="anlass" required placeholder="z.B. Spielnr. 12345 · BC Erfurt vs. SV Musterstadt"></textarea>
       </div>
-
       <div class="fg">
         <label for="mitreisende">Anzahl Mitreisende <span class="req">*</span></label>
         <input type="number" id="mitreisende" name="mitreisende" min="1" max="20" step="1" placeholder="z.B. 2" required>
       </div>
-
       <div class="fg">
         <label for="kilometer">Gefahrene Kilometer (Hin &amp; Rückfahrt) <span class="req">*</span></label>
         <div class="km-wrap">
@@ -110,7 +106,6 @@
         <div class="km-hint">Hin- und Rückfahrt zusammen · Vergütung: 0,15 € / km</div>
         <div class="km-calc" id="kmCalcHint"></div>
       </div>
-
       <div class="fg">
         <label>Auszahlungsbetrag</label>
         <div class="betrag-display" id="betragDisplay">– €</div>
@@ -118,7 +113,6 @@
       </div>
     </fieldset>
 
-    <!-- Persönliche Daten -->
     <fieldset>
       <legend>Persönliche Daten</legend>
       <div class="row">
@@ -142,17 +136,15 @@
       <div class="fg">
         <label for="iban">IBAN <span class="req">*</span></label>
         <input type="text" id="iban" name="iban" placeholder="DE00 0000 0000 0000 0000 00"
-               maxlength="27" autocomplete="off" oninput="formatIban(this)"
-               required autocapitalize="characters" spellcheck="false">
+               maxlength="27" autocomplete="off" required autocapitalize="characters" spellcheck="false">
       </div>
     </fieldset>
 
-    <!-- Belege (optional) -->
     <fieldset>
       <legend>Belege hochladen <span style="font-weight:400;color:#888;font-size:.82rem">(optional)</span></legend>
       <div class="fg">
         <div class="upload-area" id="uploadArea">
-          <input type="file" id="belegFiles" accept="image/*,application/pdf" multiple onchange="handleFiles(this)">
+          <input type="file" id="belegFiles" accept="image/*,application/pdf" multiple>
           <div class="upload-icon">📎</div>
           <div class="upload-text"><strong>Dateien auswählen</strong> oder hierher ziehen</div>
           <div class="upload-hint">JPG, PNG, PDF · max. 5 MB pro Datei · mehrere Dateien möglich</div>
@@ -161,7 +153,6 @@
       </div>
     </fieldset>
 
-    <!-- Bestätigung -->
     <div class="consent-block">
       <div class="consent-row">
         <input type="checkbox" id="bestaetigung" name="bestaetigung" required>
@@ -169,7 +160,7 @@
       </div>
     </div>
 
-    <button type="submit" class="btn" id="submitBtn">
+    <button type="button" class="btn" id="submitBtn">
       <span id="btnText">Antrag absenden</span>
       <span class="spinner" id="spinner"></span>
     </button>
@@ -191,129 +182,32 @@
   const TIMEOUT_MS = 90000;
 
   let fileStore    = [];
-  let kmCalcServer = null;  // vom Backend berechnete Luftlinie
-  let kmWarned     = false; // Nutzer hat Hinweis bereits bestätigt
+  let kmCalcServer = null;
+  let kmWarned     = false;
 
-  // ── Betrag berechnen ─────────────────────────────────────
+  // ── Betrag berechnen ────────────────────────────────────────
   function updateBetrag() {
     const km = parseFloat(document.getElementById("kilometer").value);
     const el = document.getElementById("betragDisplay");
     el.textContent = (!isNaN(km) && km > 0)
       ? (km * RATE).toLocaleString("de-DE", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €"
       : "– €";
-    kmWarned = false; // neuer km-Wert → Dialog-Sperre zurücksetzen
+    kmWarned = false;
   }
 
-  // ── IBAN formatieren ─────────────────────────────────────
+  // ── IBAN formatieren ────────────────────────────────────────
   function formatIban(el) {
     let v = el.value.replace(/\s/g,"").toUpperCase();
     el.value = v.match(/.{1,4}/g)?.join(" ") || v;
   }
 
-  // ── Events nach DOM-ready ─────────────────────────────────
-  document.addEventListener("DOMContentLoaded", () => {
-
-    // Betrag bei Tippen UND beim Verlassen des km-Feldes aktualisieren
-    const kmEl = document.getElementById("kilometer");
-    kmEl.addEventListener("input",  updateBetrag);
-    kmEl.addEventListener("change", updateBetrag);
-
-    // Kontoinhaber Auto-Fill aus Vor-/Nachname
-    let kontoinhaberManual = false;
-    document.getElementById("kontoinhaber").addEventListener("input", () => { kontoinhaberManual = true; });
-    ["vorname","nachname"].forEach(id => {
-      document.getElementById(id).addEventListener("blur", () => {
-        if (kontoinhaberManual) return;
-        const v = document.getElementById("vorname").value.trim();
-        const n = document.getElementById("nachname").value.trim();
-        document.getElementById("kontoinhaber").value = [v,n].filter(Boolean).join(" ");
-      });
-    });
-
-    // Zielort blur → KM-Luftlinie vom Backend holen, Feld vorbelegen
-    document.getElementById("zielort").addEventListener("blur", async function() {
-      const zielort = this.value.trim();
-      if (!zielort) return;
-      const hint = document.getElementById("kmCalcHint");
-      hint.textContent = "📍 Berechne Luftlinie …";
-      hint.style.display = "block";
-      try {
-        const res  = await fetch(PROXY_URL, { method:"POST",
-          body: JSON.stringify({ action:"checkKm", zielort,
-            kmUser: parseFloat(document.getElementById("kilometer").value) || 0 }) });
-        const json = await res.json();
-        if (json.success && json.kmCalc) {
-          kmCalcServer = json.kmCalc;
-          hint.textContent = "📍 Luftlinie Erfurt → " + zielort + ": ca. " + json.kmCalc + " km (H+R)";
-          // km-Feld vorbelegen wenn noch leer
-          if (!kmEl.value) {
-            kmEl.value = json.kmCalc;
-            updateBetrag();
-          }
-        } else {
-          hint.style.display = "none";
-        }
-      } catch(e) {
-        hint.style.display = "none";
-      }
-    });
-  });
-
-  // ── Drag & Drop Upload ────────────────────────────────────
-  const uploadArea = document.getElementById("uploadArea");
-  uploadArea.addEventListener("dragover",  e => { e.preventDefault(); uploadArea.classList.add("drag"); });
-  uploadArea.addEventListener("dragleave", ()  => uploadArea.classList.remove("drag"));
-  uploadArea.addEventListener("drop", e => {
-    e.preventDefault(); uploadArea.classList.remove("drag");
-    addFiles(Array.from(e.dataTransfer.files));
-  });
-  function handleFiles(inp) { addFiles(Array.from(inp.files)); inp.value = ""; }
-
-  async function addFiles(files) {
-    for (const f of files) {
-      if (f.size > MAX_BYTES) { showMsg("„" + f.name + "" ist zu groß (max. 5 MB).", "err"); continue; }
-      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
-        showMsg("„" + f.name + "" – nur Bilder und PDF erlaubt.", "err"); continue;
-      }
-      if (fileStore.find(s => s.name === f.name && s.size === f.size)) continue;
-      try {
-        const base64 = await readAsBase64(f);
-        fileStore.push({ name: f.name, base64, mimeType: f.type, size: f.size });
-      } catch(err) { showMsg("Fehler beim Lesen von „" + f.name + "": " + err.message, "err"); }
-    }
-    renderFileList();
-  }
-
-  function readAsBase64(file) {
-    return new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onerror = () => rej(new Error("Lesefehler"));
-      r.onload  = () => res(r.result.split(",")[1]);
-      r.readAsDataURL(file);
-    });
-  }
-
-  function removeFile(idx) { fileStore.splice(idx, 1); renderFileList(); }
-
-  function renderFileList() {
-    const el = document.getElementById("fileList");
-    if (!fileStore.length) { el.style.display = "none"; uploadArea.classList.remove("has-file"); return; }
-    uploadArea.classList.add("has-file");
-    el.style.display = "block";
-    el.innerHTML = fileStore.map((f, i) =>
-      `<div class="file-item"><span>📄</span>
-        <span><strong>${f.name}</strong> <span class="file-size">(${(f.size/1024).toFixed(0)} KB)</span></span>
-        <button type="button" class="remove-btn" onclick="removeFile(${i})">Entfernen</button>
-      </div>`).join("");
-  }
-
-  // ── Validierung ───────────────────────────────────────────
+  // ── Validierung ─────────────────────────────────────────────
   function validate() {
     const ids = ["reiseDatum","zielort","anlass","mitreisende","kilometer",
                  "vorname","nachname","email","kontoinhaber","iban"];
     let ok = true;
     ids.forEach(id => {
-      const el    = document.getElementById(id);
+      const el = document.getElementById(id);
       const empty = !el.value.trim();
       el.classList.toggle("err", empty);
       if (empty) ok = false;
@@ -351,82 +245,175 @@
     m.scrollIntoView({ behavior:"smooth", block:"nearest" });
   }
 
-  // ── Absenden ──────────────────────────────────────────────
-  document.getElementById("mainForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    document.getElementById("msg").style.display = "none";
-    if (!validate()) { showMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err"); return; }
-
-    const km = parseFloat(document.getElementById("kilometer").value);
-
-    // KM-Abweichungs-Dialog (einmalig, >20 %)
-    if (kmCalcServer !== null && !kmWarned) {
-      const abw = (km - kmCalcServer) / kmCalcServer;
-      if (abw > 0.20) {
-        kmWarned = true;
-        const ok = confirm(
-          "⚠️ Hinweis zur Kilometerangabe\n\n"
-          + "Du hast " + km + " km angegeben.\n"
-          + "Die Luftlinie Erfurt → " + document.getElementById("zielort").value.trim()
-          + " (Hin+Rück) beträgt ca. " + kmCalcServer + " km.\n\n"
-          + "Die Abweichung beträgt " + Math.round(abw*100) + " % (Schwelle: 20 %).\n\n"
-          + "Möchtest du den Antrag trotzdem absenden?\n"
-          + "(Die Luftlinie wird in der Beschreibung vermerkt.)"
-        );
-        if (!ok) return;
-      }
-    }
-
-    const betrag = parseFloat((km * RATE).toFixed(2));
-    const btn    = document.getElementById("submitBtn");
-    btn.disabled = true;
-    document.getElementById("btnText").textContent  = "Wird gesendet …";
-    document.getElementById("spinner").style.display = "inline-block";
-
-    const payload = {
-      reiseDatum:   document.getElementById("reiseDatum").value,
-      zielort:      document.getElementById("zielort").value.trim(),
-      anlass:       document.getElementById("anlass").value.trim(),
-      mitreisende:  parseInt(document.getElementById("mitreisende").value),
-      kilometer:    km,
-      betrag,
-      vorname:      document.getElementById("vorname").value.trim(),
-      nachname:     document.getElementById("nachname").value.trim(),
-      email:        document.getElementById("email").value.trim(),
-      kontoinhaber: document.getElementById("kontoinhaber").value.trim(),
-      iban:         document.getElementById("iban").value.replace(/\s/g,"").toUpperCase(),
-      belege:       fileStore.map(f => ({ fileName: f.name, mimeType: f.mimeType, base64: f.base64 })),
-    };
-
-    try {
-      const ctrl = new AbortController();
-      const tid  = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-      const res  = await fetch(PROXY_URL, { method:"POST", signal: ctrl.signal, body: JSON.stringify(payload) });
-      clearTimeout(tid);
-      const json = await res.json();
-
-      if (json.success) {
-        document.getElementById("mainForm").style.display      = "none";
-        document.getElementById("successScreen").style.display = "block";
-        document.getElementById("successName").textContent     = "Danke, " + payload.vorname + "!";
-        window.scrollTo({ top:0, behavior:"smooth" });
-      } else {
-        showMsg("❌ " + (json.error || "Unbekannter Fehler."), "err");
-        resetBtn();
-      }
-    } catch(err) {
-      showMsg("❌ " + (err.name === "AbortError"
-        ? "Zeitüberschreitung. Bitte erneut versuchen."
-        : "Netzwerkfehler: " + err.message), "err");
-      resetBtn();
-    }
-  });
-
   function resetBtn() {
     document.getElementById("submitBtn").disabled = false;
-    document.getElementById("btnText").textContent  = "Antrag absenden";
+    document.getElementById("btnText").textContent   = "Antrag absenden";
     document.getElementById("spinner").style.display = "none";
   }
+
+  // ── Upload ──────────────────────────────────────────────────
+  function readAsBase64(file) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onerror = () => rej(new Error("Lesefehler"));
+      r.onload  = () => res(r.result.split(",")[1]);
+      r.readAsDataURL(file);
+    });
+  }
+
+  function removeFile(idx) { fileStore.splice(idx, 1); renderFileList(); }
+
+  function renderFileList() {
+    const el = document.getElementById("fileList");
+    if (!fileStore.length) { el.style.display = "none"; uploadArea.classList.remove("has-file"); return; }
+    uploadArea.classList.add("has-file");
+    el.style.display = "block";
+    el.innerHTML = fileStore.map((f, i) =>
+      `<div class="file-item"><span>📄</span>
+        <span><strong>${f.name}</strong> <span class="file-size">(${(f.size/1024).toFixed(0)} KB)</span></span>
+        <button type="button" class="remove-btn" onclick="removeFile(${i})">Entfernen</button>
+      </div>`).join("");
+  }
+
+  async function addFiles(files) {
+    for (const f of files) {
+      if (f.size > MAX_BYTES) { showMsg("„" + f.name + "" ist zu groß (max. 5 MB).", "err"); continue; }
+      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
+        showMsg("„" + f.name + "" – nur Bilder und PDF erlaubt.", "err"); continue;
+      }
+      if (fileStore.find(s => s.name === f.name && s.size === f.size)) continue;
+      try {
+        const base64 = await readAsBase64(f);
+        fileStore.push({ name: f.name, base64, mimeType: f.type, size: f.size });
+      } catch(err) { showMsg("Fehler beim Lesen: " + err.message, "err"); }
+    }
+    renderFileList();
+  }
+
+  // ── Alles nach DOM-Ready ────────────────────────────────────
+  document.addEventListener("DOMContentLoaded", function() {
+
+    // km → Betrag
+    const kmEl = document.getElementById("kilometer");
+    kmEl.addEventListener("input",  updateBetrag);
+    kmEl.addEventListener("change", updateBetrag);
+
+    // IBAN formatieren
+    document.getElementById("iban").addEventListener("input", function() { formatIban(this); });
+
+    // Kontoinhaber Auto-Fill
+    let kontoinhaberManual = false;
+    document.getElementById("kontoinhaber").addEventListener("input", function() { kontoinhaberManual = true; });
+    ["vorname","nachname"].forEach(function(id) {
+      document.getElementById(id).addEventListener("blur", function() {
+        if (kontoinhaberManual) return;
+        const v = document.getElementById("vorname").value.trim();
+        const n = document.getElementById("nachname").value.trim();
+        document.getElementById("kontoinhaber").value = [v,n].filter(Boolean).join(" ");
+      });
+    });
+
+    // Zielort blur → KM-Luftlinie vom Backend
+    document.getElementById("zielort").addEventListener("blur", async function() {
+      const zielort = this.value.trim();
+      if (!zielort) return;
+      const hint = document.getElementById("kmCalcHint");
+      hint.textContent = "📍 Berechne Luftlinie …";
+      hint.style.display = "block";
+      try {
+        const res  = await fetch(PROXY_URL, { method:"POST",
+          body: JSON.stringify({ action:"checkKm", zielort, kmUser: parseFloat(kmEl.value)||0 }) });
+        const json = await res.json();
+        if (json.success && json.kmCalc) {
+          kmCalcServer = json.kmCalc;
+          hint.textContent = "📍 Luftlinie Erfurt → " + zielort + ": ca. " + json.kmCalc + " km (H+R)";
+          if (!kmEl.value) { kmEl.value = json.kmCalc; updateBetrag(); }
+        } else { hint.style.display = "none"; }
+      } catch(e) { hint.style.display = "none"; }
+    });
+
+    // Upload: Drag & Drop + File-Input
+    const uploadArea = document.getElementById("uploadArea");
+    uploadArea.addEventListener("dragover",  function(e) { e.preventDefault(); uploadArea.classList.add("drag"); });
+    uploadArea.addEventListener("dragleave", function()  { uploadArea.classList.remove("drag"); });
+    uploadArea.addEventListener("drop", function(e) {
+      e.preventDefault(); uploadArea.classList.remove("drag");
+      addFiles(Array.from(e.dataTransfer.files));
+    });
+    document.getElementById("belegFiles").addEventListener("change", function() {
+      addFiles(Array.from(this.files)); this.value = "";
+    });
+
+    // ── Submit-Button (type="button" → kein nativer Submit) ──
+    document.getElementById("submitBtn").addEventListener("click", async function() {
+      document.getElementById("msg").style.display = "none";
+      if (!validate()) { showMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err"); return; }
+
+      const km = parseFloat(document.getElementById("kilometer").value);
+
+      // KM-Abweichungs-Dialog
+      if (kmCalcServer !== null && !kmWarned) {
+        const abw = (km - kmCalcServer) / kmCalcServer;
+        if (abw > 0.20) {
+          kmWarned = true;
+          const confirmed = confirm(
+            "⚠️ Hinweis zur Kilometerangabe\n\n"
+            + "Du hast " + km + " km angegeben.\n"
+            + "Die Luftlinie Erfurt → " + document.getElementById("zielort").value.trim()
+            + " (Hin+Rück) beträgt ca. " + kmCalcServer + " km.\n\n"
+            + "Abweichung: " + Math.round(abw*100) + " % (Schwelle: 20 %).\n\n"
+            + "Trotzdem absenden? (Luftlinie wird in der Beschreibung vermerkt.)"
+          );
+          if (!confirmed) return;
+        }
+      }
+
+      const betrag = parseFloat((km * RATE).toFixed(2));
+      const btn    = document.getElementById("submitBtn");
+      btn.disabled = true;
+      document.getElementById("btnText").textContent   = "Wird gesendet …";
+      document.getElementById("spinner").style.display = "inline-block";
+
+      const payload = {
+        reiseDatum:   document.getElementById("reiseDatum").value,
+        zielort:      document.getElementById("zielort").value.trim(),
+        anlass:       document.getElementById("anlass").value.trim(),
+        mitreisende:  parseInt(document.getElementById("mitreisende").value),
+        kilometer:    km,
+        betrag,
+        vorname:      document.getElementById("vorname").value.trim(),
+        nachname:     document.getElementById("nachname").value.trim(),
+        email:        document.getElementById("email").value.trim(),
+        kontoinhaber: document.getElementById("kontoinhaber").value.trim(),
+        iban:         document.getElementById("iban").value.replace(/\s/g,"").toUpperCase(),
+        belege:       fileStore.map(function(f) { return { fileName: f.name, mimeType: f.mimeType, base64: f.base64 }; }),
+      };
+
+      try {
+        const ctrl = new AbortController();
+        const tid  = setTimeout(function() { ctrl.abort(); }, TIMEOUT_MS);
+        const res  = await fetch(PROXY_URL, { method:"POST", signal: ctrl.signal, body: JSON.stringify(payload) });
+        clearTimeout(tid);
+        const json = await res.json();
+
+        if (json.success) {
+          document.getElementById("mainForm").style.display      = "none";
+          document.getElementById("successScreen").style.display = "block";
+          document.getElementById("successName").textContent     = "Danke, " + payload.vorname + "!";
+          window.scrollTo({ top:0, behavior:"smooth" });
+        } else {
+          showMsg("❌ " + (json.error || "Unbekannter Fehler."), "err");
+          resetBtn();
+        }
+      } catch(err) {
+        showMsg("❌ " + (err.name === "AbortError"
+          ? "Zeitüberschreitung. Bitte erneut versuchen."
+          : "Netzwerkfehler: " + err.message), "err");
+        resetBtn();
+      }
+    }); // Ende submitBtn click
+
+  }); // Ende DOMContentLoaded
 </script>
 </body>
 </html>
