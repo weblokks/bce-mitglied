@@ -102,8 +102,8 @@
                  placeholder="akt. Verg&uuml;tung 0,15 &euro; pro km" style="padding-right:2.6rem">
           <span class="km-suffix">km</span>
         </div>
-        <div class="hint-s">Hin + R&uuml;ck zusammen &middot; Verg&uuml;tung: 0,15 &euro; / km</div>
         <!-- VERSIONSCHECK V07 -->
+        <div class="hint-s">Hin + R&uuml;ck zusammen &middot; Verg&uuml;tung: 0,15 &euro; / km</div>
         <div class="hint-c" id="kmCalcHint"></div>
         <div class="hint-err" id="kmCalcErr"></div>
       </div>
@@ -251,15 +251,13 @@ fKontoinhaber.addEventListener("input", function() {
   fNachname.addEventListener(ev, syncKinh);
 });
 
-/* KM VOM SERVER */
+/* KM VOM SERVER – V07 */
 function holeKm(z) {
-  hintKm.textContent    = "\u{1F4CD} Berechne Entfernung \u2026";
-  hintKm.style.display  = "block";
+  hintKm.textContent      = "\u{1F4CD} Berechne Entfernung \u2026";
+  hintKm.style.display    = "block";
   hintKmErr.style.display = "none";
-
   fetch(PROXY, {
     method:  "POST",
-    // FIX: text/plain vermeidet CORS-Preflight bei Google Apps Script
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body:    JSON.stringify({ action: "checkKm", zielort: z, kmUser: parseFloat(fKilometer.value) || 0 })
   })
@@ -268,23 +266,26 @@ function holeKm(z) {
     return r.json();
   })
   .then(function(j) {
+    hintKmErr.textContent   = "DEBUG V07 Server-Antwort: " + JSON.stringify(j);
+    hintKmErr.style.display = "block";
     if (j && j.success && j.kmCalc) {
-      kmServer = j.kmCalc;
-      hintKm.textContent = "\u{1F4CD} Luftlinie Erfurt \u2192 " + z + ": ca. " + j.kmCalc + " km (H+R)";
+      kmServer    = j.kmCalc;
+      kmServerTyp = j.kmTyp || "Referenz";
+      kmThreshold = j.schwellePct || 10;
+      hintKm.textContent   = "\u{1F4CD} " + kmServerTyp + " Erfurt \u2192 " + z
+                            + ": ca. " + j.kmCalc + " km (Hin + R\u00fcck)";
+      hintKm.style.display = "block";
       if (!(parseFloat(fKilometer.value) > 0)) {
         fKilometer.value = j.kmCalc;
         berechneBetrag();
       }
     } else {
-      hintKm.style.display  = "none";
-      // Zeige Server-Antwort zur Diagnose
-      hintKmErr.textContent = "KM-Berechnung: keine Antwort vom Server. Bitte km manuell eingeben. (Details: " + JSON.stringify(j) + ")";
-      hintKmErr.style.display = "block";
+      hintKm.style.display = "none";
     }
   })
   .catch(function(e) {
-    hintKm.style.display  = "none";
-    hintKmErr.textContent = "KM-Berechnung nicht verf\u00fcgbar (" + e.message + "). Bitte km manuell eingeben.";
+    hintKm.style.display    = "none";
+    hintKmErr.textContent   = "DEBUG V07 Fehler: " + e.message;
     hintKmErr.style.display = "block";
   });
 }
@@ -395,7 +396,7 @@ btnSubmit.addEventListener("click", function() {
       kmWarnDone = true;
       if (!confirm(
         "Kilometerangabe\n\nAngegeben: " + km + " km\n"
-        + kmServerTyp + " Erfurt - " + fZielort.value.trim() + " (H+R): ca. " + kmServer + " km\n"
+        + kmServerTyp + " Erfurt - " + fZielort.value.trim() + " (Hin + R\u00fcck): ca. " + kmServer + " km\n"
         + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: " + kmThreshold + "%)\n\nTrotzdem absenden?"
       )) return;
     }
@@ -421,8 +422,11 @@ btnSubmit.addEventListener("click", function() {
 
   var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
   var tid  = setTimeout(function() { if (ctrl) ctrl.abort(); }, TIMEOUT);
-  // FIX: text/plain vermeidet CORS-Preflight bei Google Apps Script
-  var opts = { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) };
+  var opts = {
+    method:  "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body:    JSON.stringify(payload)
+  };
   if (ctrl) opts.signal = ctrl.signal;
 
   fetch(PROXY, opts)
