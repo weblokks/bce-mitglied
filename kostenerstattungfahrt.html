@@ -84,7 +84,7 @@
         </div>
         <div class="fg">
           <label for="zielort">Zielort <span class="req">*</span></label>
-          <input type="text" id="zielort" placeholder="z.B. Jena">
+          <input type="text" id="zielort" placeholder="z.B. Berlin">
         </div>
       </div>
       <div class="fg">
@@ -255,7 +255,8 @@ function holeKm(z) {
 
   fetch(PROXY, {
     method:  "POST",
-    headers: { "Content-Type": "application/json" },
+    // FIX: text/plain vermeidet CORS-Preflight bei Google Apps Script
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body:    JSON.stringify({ action: "checkKm", zielort: z, kmUser: parseFloat(fKilometer.value) || 0 })
   })
   .then(function(r) {
@@ -416,7 +417,8 @@ btnSubmit.addEventListener("click", function() {
 
   var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
   var tid  = setTimeout(function() { if (ctrl) ctrl.abort(); }, TIMEOUT);
-  var opts = { method: "POST", body: JSON.stringify(payload) };
+  // FIX: text/plain vermeidet CORS-Preflight bei Google Apps Script
+  var opts = { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) };
   if (ctrl) opts.signal = ctrl.signal;
 
   fetch(PROXY, opts)
