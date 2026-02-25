@@ -34,7 +34,6 @@
     .km-suffix { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); font-size: .88rem; color: #888; pointer-events: none; }
     .hint-s { font-size: .75rem; color: #888; margin-top: .3rem; }
     .hint-c { font-size: .75rem; color: #1558b0; margin-top: .25rem; display: none; }
-    .hint-err { font-size: .75rem; color: #c00; margin-top: .25rem; display: none; }
     .betrag-box { background: #f0f7ff; border: 1.5px solid #b3d4f0; border-radius: 5px; height: 2.5rem; display: flex; align-items: center; padding: 0 .75rem; font-size: 1.05rem; font-weight: 700; color: #1558b0; }
     .betrag-note { font-size: .74rem; color: #888; margin-top: .28rem; }
     .upload-area { border: 2px dashed #bbb; border-radius: 6px; padding: 1.2rem 1rem; text-align: center; cursor: pointer; background: #fafafa; position: relative; overflow: hidden; transition: border-color .15s, background .15s; }
@@ -89,33 +88,31 @@
       </div>
       <div class="fg">
         <label for="anlass">Anlass der Reise / Spiel <span class="req">*</span></label>
-        <textarea id="anlass" placeholder="z.B. Spielnr. 12345 &middot; BC Erfurt vs. SV Musterstadt"></textarea>
+        <textarea id="anlass" placeholder="z.B. Spielnr. 12345 · BC Erfurt vs. SV Musterstadt"></textarea>
       </div>
       <div class="fg">
         <label for="mitreisende">Anzahl Mitreisende <span class="req">*</span></label>
         <input type="number" id="mitreisende" min="1" max="20" step="1" placeholder="z.B. 2">
       </div>
       <div class="fg">
-        <label for="kilometer">Gefahrene Kilometer (Hin + R&uuml;ck) <span class="req">*</span></label>
+        <label for="kilometer">Gefahrene Kilometer (Hin + Rück) <span class="req">*</span></label>
         <div class="km-wrap">
           <input type="number" id="kilometer" min="1" step="1"
-                 placeholder="akt. Verg&uuml;tung 0,15 &euro; pro km" style="padding-right:2.6rem">
+                 placeholder="akt. Vergütung 0,15 € pro km" style="padding-right:2.6rem">
           <span class="km-suffix">km</span>
         </div>
-        <!-- VERSIONSCHECK V07 -->
-        <div class="hint-s">Hin + R&uuml;ck zusammen &middot; Verg&uuml;tung: 0,15 &euro; / km</div>
+        <div class="hint-s">Hin + Rück zusammen · Vergütung: 0,15 € / km</div>
         <div class="hint-c" id="kmCalcHint"></div>
-        <div class="hint-err" id="kmCalcErr"></div>
       </div>
       <div class="fg">
         <label>Auszahlungsbetrag</label>
-        <div class="betrag-box" id="betragBox">&#8211; &euro;</div>
-        <div class="betrag-note">Wird automatisch berechnet (km &times; 0,15 &euro;)</div>
+        <div class="betrag-box" id="betragBox">– €</div>
+        <div class="betrag-note">Wird automatisch berechnet (km × 0,15 €)</div>
       </div>
     </fieldset>
 
     <fieldset>
-      <legend>Pers&ouml;nliche Daten</legend>
+      <legend>Persönliche Daten</legend>
       <div class="row">
         <div class="fg">
           <label for="vorname">Vorname <span class="req">*</span></label>
@@ -145,9 +142,9 @@
       <legend>Belege hochladen <span style="font-weight:400;color:#888;font-size:.82rem">(optional)</span></legend>
       <div class="upload-area" id="uploadArea">
         <input type="file" id="fileInput" accept="image/*,application/pdf" multiple>
-        <div class="upload-icon">&#128206;</div>
-        <div class="upload-text"><strong>Dateien ausw&auml;hlen</strong> oder hierher ziehen</div>
-        <div class="upload-hint">JPG, PNG, PDF &middot; max. 5 MB pro Datei</div>
+        <div class="upload-icon">📎</div>
+        <div class="upload-text"><strong>Dateien auswählen</strong> oder hierher ziehen</div>
+        <div class="upload-hint">JPG, PNG, PDF · max. 5 MB pro Datei</div>
       </div>
       <div id="fileList"></div>
     </fieldset>
@@ -155,7 +152,7 @@
     <div class="consent-block">
       <div class="consent-row">
         <input type="checkbox" id="bestaetigung">
-        <label for="bestaetigung">Hiermit best&auml;tige ich, dass die Angaben korrekt und vollst&auml;ndig sind.</label>
+        <label for="bestaetigung">Hiermit bestätige ich, dass die Angaben korrekt und vollständig sind.</label>
       </div>
     </div>
 
@@ -167,10 +164,10 @@
   </div>
 
   <div id="successScreen">
-    <div class="ico">&#9989;</div>
+    <div class="ico">✅</div>
     <h2 id="okName"></h2>
-    <p>Dein Antrag auf Erstattung der Fahrtkosten wurde erfolgreich &uuml;bermittelt.<br>
-       Wir melden uns in K&uuml;rze per E-Mail bei dir.</p>
+    <p>Dein Antrag auf Erstattung der Fahrtkosten wurde erfolgreich übermittelt.<br>
+       Wir melden uns in Kürze per E-Mail bei dir.</p>
   </div>
 </div>
 
@@ -187,10 +184,10 @@ var uploads     = [];
 var kmServer    = null;
 var kmServerTyp = "Referenz";
 var kmThreshold = 10;
-// ^^^ VERSIONSCHECK: wenn du diese Zeile im Quellcode siehst, ist die aktuelle Version aktiv
 var kmWarnDone  = false;
 var kinhTouched = false;
 var kmTimer     = null;
+var kmPending   = false; // verhindert Doppel-Requests
 
 function gi(id) { return document.getElementById(id); }
 
@@ -207,36 +204,29 @@ var fIban         = gi("iban");
 var fCheckbox     = gi("bestaetigung");
 var boxBetrag     = gi("betragBox");
 var hintKm        = gi("kmCalcHint");
-var hintKmErr     = gi("kmCalcErr");
 var btnSubmit     = gi("submitBtn");
 var elMsg         = gi("msg");
 var elUpArea      = gi("uploadArea");
 var elFileList    = gi("fileList");
 var elFileInput   = gi("fileInput");
 
-/* BETRAG */
+/* ---------- BETRAG ---------- */
 function berechneBetrag() {
   var km = parseFloat(fKilometer.value);
-  if (km > 0) {
-    boxBetrag.textContent = (km * RATE).toLocaleString("de-DE", {
-      minimumFractionDigits: 2, maximumFractionDigits: 2
-    }) + " \u20ac";
-  } else {
-    boxBetrag.textContent = "\u2013 \u20ac";
-  }
+  boxBetrag.textContent = km > 0
+    ? (km * RATE).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " \u20ac"
+    : "\u2013 \u20ac";
   kmWarnDone = false;
 }
-fKilometer.addEventListener("input",  berechneBetrag);
-fKilometer.addEventListener("change", berechneBetrag);
-fKilometer.addEventListener("keyup",  berechneBetrag);
+["input","change","keyup"].forEach(function(ev) { fKilometer.addEventListener(ev, berechneBetrag); });
 
-/* IBAN */
+/* ---------- IBAN-Formatierung ---------- */
 fIban.addEventListener("input", function() {
   var raw = fIban.value.replace(/\s/g, "").toUpperCase();
   fIban.value = (raw.match(/.{1,4}/g) || []).join(" ");
 });
 
-/* KONTOINHABER */
+/* ---------- KONTOINHABER Auto-Sync ---------- */
 function syncKinh() {
   if (kinhTouched) return;
   var full = (fVorname.value.trim() + " " + fNachname.value.trim()).trim();
@@ -244,18 +234,20 @@ function syncKinh() {
 }
 fKontoinhaber.addEventListener("input", function() {
   var auto = (fVorname.value.trim() + " " + fNachname.value.trim()).trim();
-  if (fKontoinhaber.value.trim() !== auto) kinhTouched = true;
+  kinhTouched = fKontoinhaber.value.trim() !== auto;
 });
 ["input","change","blur"].forEach(function(ev) {
   fVorname.addEventListener(ev,  syncKinh);
   fNachname.addEventListener(ev, syncKinh);
 });
 
-/* KM VOM SERVER – V07 */
+/* ---------- KM VOM SERVER ---------- */
 function holeKm(z) {
-  hintKm.textContent      = "\u{1F4CD} Berechne Entfernung \u2026";
-  hintKm.style.display    = "block";
-  hintKmErr.style.display = "none";
+  if (kmPending) return;
+  kmPending = true;
+  hintKm.textContent   = "\uD83D\uDCCD Berechne Entfernung \u2026";
+  hintKm.style.display = "block";
+
   fetch(PROXY, {
     method:  "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -266,15 +258,15 @@ function holeKm(z) {
     return r.json();
   })
   .then(function(j) {
-    hintKmErr.textContent   = "DEBUG V07 Server-Antwort: " + JSON.stringify(j);
-    hintKmErr.style.display = "block";
+    kmPending = false;
     if (j && j.success && j.kmCalc) {
       kmServer    = j.kmCalc;
-      kmServerTyp = j.kmTyp || "Referenz";
+      kmServerTyp = j.kmTyp  || "Referenz";
       kmThreshold = j.schwellePct || 10;
-      hintKm.textContent   = "\u{1F4CD} " + kmServerTyp + " Erfurt \u2192 " + z
-                            + ": ca. " + j.kmCalc + " km (Hin + R\u00fcck)";
+      hintKm.textContent   = "\uD83D\uDCCD " + kmServerTyp + " Erfurt \u2192 " + z
+                             + ": ca. " + j.kmCalc + " km (Hin + R\u00fcck)";
       hintKm.style.display = "block";
+      // KM nur vorausfüllen wenn Feld noch leer
       if (!(parseFloat(fKilometer.value) > 0)) {
         fKilometer.value = j.kmCalc;
         berechneBetrag();
@@ -283,24 +275,25 @@ function holeKm(z) {
       hintKm.style.display = "none";
     }
   })
-  .catch(function(e) {
-    hintKm.style.display    = "none";
-    hintKmErr.textContent   = "DEBUG V07 Fehler: " + e.message;
-    hintKmErr.style.display = "block";
+  .catch(function() {
+    kmPending            = false;
+    hintKm.style.display = "none";
   });
 }
 
 fZielort.addEventListener("blur", function() {
   var z = fZielort.value.trim();
-  if (z) holeKm(z);
+  if (z) { clearTimeout(kmTimer); holeKm(z); }
 });
 fZielort.addEventListener("input", function() {
   clearTimeout(kmTimer);
+  kmServer = null; // zurücksetzen bei neuer Eingabe
+  hintKm.style.display = "none";
   var z = fZielort.value.trim();
   if (z.length >= 3) kmTimer = setTimeout(function() { holeKm(z); }, 900);
 });
 
-/* UPLOAD */
+/* ---------- UPLOAD ---------- */
 elUpArea.addEventListener("dragover",  function(e) { e.preventDefault(); elUpArea.style.borderColor = "#111"; });
 elUpArea.addEventListener("dragleave", function()  { elUpArea.style.borderColor = ""; });
 elUpArea.addEventListener("drop",      function(e) { e.preventDefault(); elUpArea.style.borderColor = ""; leseFiles(e.dataTransfer.files); });
@@ -308,12 +301,12 @@ elFileInput.addEventListener("change", function()  { leseFiles(elFileInput.files
 
 function leseFiles(flist) {
   Array.prototype.forEach.call(flist, function(f) {
-    if (f.size > MAX_B) { zeigeMsg(f.name + " ist zu gro\u00df (max. 5 MB).", "err"); return; }
+    if (f.size > MAX_B) { zeigeMsg(f.name + " ist zu groß (max. 5 MB).", "err"); return; }
     if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
-      zeigeMsg(f.name + " \u2013 nur Bilder oder PDF erlaubt.", "err"); return;
+      zeigeMsg(f.name + " – nur Bilder oder PDF erlaubt.", "err"); return;
     }
     for (var i = 0; i < uploads.length; i++) {
-      if (uploads[i].name === f.name && uploads[i].size === f.size) return;
+      if (uploads[i].name === f.name && uploads[i].size === f.size) return; // Duplikat
     }
     var rd = new FileReader();
     rd.onload = function(ev) {
@@ -329,7 +322,7 @@ function renderFiles() {
   elUpArea.classList.add("has-file");
   var html = "";
   for (var i = 0; i < uploads.length; i++) {
-    html += "<div class=\"file-item\"><span>&#128196;</span>"
+    html += "<div class=\"file-item\"><span>\uD83D\uDCC4</span>"
       + "<span><strong>" + uploads[i].name + "</strong>"
       + " <span class=\"file-sz\">(" + Math.round(uploads[i].size / 1024) + " KB)</span></span>"
       + "<button type=\"button\" class=\"file-rm\" data-i=\"" + i + "\">Entfernen</button></div>";
@@ -343,7 +336,7 @@ function renderFiles() {
   });
 }
 
-/* VALIDIERUNG */
+/* ---------- VALIDIERUNG ---------- */
 function validate() {
   var felder = [fReiseDatum, fZielort, fAnlass, fMitreisende, fKilometer,
                 fVorname, fNachname, fEmail, fKontoinhaber, fIban];
@@ -352,23 +345,29 @@ function validate() {
     if (!el.value.trim()) { el.classList.add("err"); ok = false; }
     else                   { el.classList.remove("err"); }
   });
+
+  // Datum-Prüfung (nur wenn Feld gefüllt)
   if (fReiseDatum.value) {
     var dat   = new Date(fReiseDatum.value);
     var heute = new Date(); heute.setHours(0, 0, 0, 0);
     var diff  = Math.floor((heute - dat) / 86400000);
     if (dat.getFullYear() !== heute.getFullYear()) {
       fReiseDatum.classList.add("err");
-      zeigeMsg("Antr\u00e4ge nur f\u00fcr Reisen im laufenden Kalenderjahr m\u00f6glich.", "err");
-      ok = false;
-    } else if (diff > 30) {
+      zeigeMsg("Anträge nur für Reisen im laufenden Kalenderjahr möglich.", "err");
+      return false;
+    }
+    if (diff > 30) {
       fReiseDatum.classList.add("err");
-      zeigeMsg("Antr\u00e4ge nur bis zu 30 Tage nach der Reise m\u00f6glich.", "err");
-      ok = false;
+      zeigeMsg("Anträge nur bis zu 30 Tage nach der Reise möglich.", "err");
+      return false;
     }
   }
+
   if (!(parseFloat(fKilometer.value) > 0)) { fKilometer.classList.add("err"); ok = false; }
+
   if (!fCheckbox.checked) { fCheckbox.style.outline = "2px solid #c00"; ok = false; }
   else                     { fCheckbox.style.outline = ""; }
+
   return ok;
 }
 
@@ -378,31 +377,41 @@ function zeigeMsg(txt, cls) {
   elMsg.style.display = "block";
   elMsg.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
+
 function setBusy(b) {
   btnSubmit.disabled       = b;
   gi("btnTxt").textContent = b ? "Wird gesendet \u2026" : "Antrag absenden";
   gi("spin").style.display = b ? "inline-block" : "none";
 }
 
-/* SUBMIT */
+/* ---------- SUBMIT ---------- */
 btnSubmit.addEventListener("click", function() {
   elMsg.style.display = "none";
-  if (!validate()) { zeigeMsg("Bitte alle Pflichtfelder ausf\u00fcllen.", "err"); return; }
+  if (!validate()) {
+    zeigeMsg("Bitte alle Pflichtfelder ausfüllen.", "err");
+    return;
+  }
 
   var km = parseFloat(fKilometer.value);
+
+  // KM-Abweichungswarnung
   if (kmServer !== null && !kmWarnDone) {
     var abw = (km - kmServer) / kmServer;
     if (abw > kmThreshold / 100) {
       kmWarnDone = true;
       if (!confirm(
-        "Kilometerangabe\n\nAngegeben: " + km + " km\n"
-        + kmServerTyp + " Erfurt - " + fZielort.value.trim() + " (Hin + R\u00fcck): ca. " + kmServer + " km\n"
-        + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: " + kmThreshold + "%)\n\nTrotzdem absenden?"
+        "Kilometerangabe\n\n"
+        + "Angegeben: " + km + " km\n"
+        + kmServerTyp + " Erfurt \u2192 " + fZielort.value.trim()
+        + " (Hin + R\u00fcck): ca. " + kmServer + " km\n"
+        + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: " + kmThreshold + "%)\n\n"
+        + "Trotzdem absenden?"
       )) return;
     }
   }
 
   setBusy(true);
+
   var payload = {
     reiseDatum:   fReiseDatum.value,
     zielort:      fZielort.value.trim(),
@@ -432,6 +441,7 @@ btnSubmit.addEventListener("click", function() {
   fetch(PROXY, opts)
     .then(function(r) { clearTimeout(tid); return r.json(); })
     .then(function(j) {
+      setBusy(false);
       if (j && j.success) {
         gi("formWrap").style.display      = "none";
         gi("successScreen").style.display = "block";
@@ -439,13 +449,12 @@ btnSubmit.addEventListener("click", function() {
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         zeigeMsg("Fehler: " + (j && j.error ? j.error : "Unbekannter Fehler."), "err");
-        setBusy(false);
       }
     })
     .catch(function(e) {
       clearTimeout(tid);
-      zeigeMsg("Fehler: " + (e.name === "AbortError" ? "Zeit\u00fcberschreitung." : "Netzwerkfehler: " + e.message), "err");
       setBusy(false);
+      zeigeMsg("Fehler: " + (e.name === "AbortError" ? "Zeitüberschreitung." : "Netzwerkfehler: " + e.message), "err");
     });
 });
 
