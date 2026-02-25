@@ -184,6 +184,8 @@ var TIMEOUT = 90000;
 
 var uploads     = [];
 var kmServer    = null;
+var kmServerTyp = "Referenz";
+var kmThreshold = 10;  // wird vom Server dynamisch gesetzt (10% Fahrstrecke, 20% Luftlinie)
 var kmWarnDone  = false;
 var kinhTouched = false;
 var kmTimer     = null;
@@ -387,12 +389,12 @@ btnSubmit.addEventListener("click", function() {
   var km = parseFloat(fKilometer.value);
   if (kmServer !== null && !kmWarnDone) {
     var abw = (km - kmServer) / kmServer;
-    if (abw > 0.20) {
+    if (abw > kmThreshold / 100) {
       kmWarnDone = true;
       if (!confirm(
         "Kilometerangabe\n\nAngegeben: " + km + " km\n"
-        + "Luftlinie Erfurt - " + fZielort.value.trim() + " (H+R): ca. " + kmServer + " km\n"
-        + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: 20%)\n\nTrotzdem absenden?"
+        + kmServerTyp + " Erfurt - " + fZielort.value.trim() + " (H+R): ca. " + kmServer + " km\n"
+        + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: " + kmThreshold + "%)\n\nTrotzdem absenden?"
       )) return;
     }
   }
