@@ -19,52 +19,52 @@
     label { display: block; font-size: .8rem; font-weight: 700; margin-bottom: .3rem; color: #333; }
     .req { color: #c00; }
     input[type="text"], input[type="email"], input[type="number"], input[type="date"], textarea {
-      border: 1.5px solid #ccc; border-radius: 5px;
-      padding: 0 .7rem; font-size: .92rem; font-family: Arial, sans-serif;
-      background: #fafafa; width: 100%; color: #111;
-      transition: border-color .15s, box-shadow .15s; display: block;
+      border: 1.5px solid #ccc; border-radius: 5px; padding: 0 .7rem;
+      font-size: .92rem; font-family: Arial, sans-serif; background: #fafafa;
+      width: 100%; color: #111; transition: border-color .15s, box-shadow .15s; display: block;
     }
     input[type="text"], input[type="email"], input[type="number"], input[type="date"] { height: 2.5rem; }
     textarea { padding: .6rem .7rem; resize: vertical; min-height: 70px; line-height: 1.45; }
     input:focus, textarea:focus { outline: none; border-color: #111; box-shadow: 0 0 0 3px rgba(0,0,0,.08); background: #fff; }
     input.err, textarea.err { border-color: #c00 !important; }
-    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type="number"] { -moz-appearance: textfield; }
     .km-wrap { position: relative; }
     .km-suffix { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); font-size: .88rem; color: #888; pointer-events: none; }
-    .km-hint { font-size: .75rem; color: #888; margin-top: .3rem; }
-    .km-calc { font-size: .75rem; color: #1558b0; margin-top: .3rem; display: none; }
-    .betrag-display { background: #f0f7ff; border: 1.5px solid #b3d4f0; border-radius: 5px; height: 2.5rem; display: flex; align-items: center; padding: 0 .75rem; font-size: 1.05rem; font-weight: 700; color: #1558b0; }
+    .hint-static { font-size: .75rem; color: #888; margin-top: .3rem; }
+    .hint-calc   { font-size: .75rem; color: #1558b0; margin-top: .25rem; display: none; }
+    .betrag-box  { background: #f0f7ff; border: 1.5px solid #b3d4f0; border-radius: 5px; height: 2.5rem; display: flex; align-items: center; padding: 0 .75rem; font-size: 1.05rem; font-weight: 700; color: #1558b0; }
     .betrag-note { font-size: .74rem; color: #888; margin-top: .28rem; }
-    .upload-area { border: 2px dashed #bbb; border-radius: 6px; padding: 1.2rem 1rem; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; background: #fafafa; position: relative; }
+    .upload-area { border: 2px dashed #bbb; border-radius: 6px; padding: 1.2rem 1rem; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; background: #fafafa; position: relative; overflow: hidden; }
     .upload-area:hover, .upload-area.drag { border-color: #111; background: #f0f0f0; }
     .upload-area.has-file { border-color: #1a6e38; background: #f0fff4; }
     .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-    .upload-icon { font-size: 1.8rem; margin-bottom: .35rem; }
-    .upload-text { font-size: .88rem; color: #555; line-height: 1.5; }
+    .upload-icon { font-size: 1.8rem; margin-bottom: .3rem; }
+    .upload-text { font-size: .88rem; color: #555; }
     .upload-text strong { color: #111; }
     .upload-hint { font-size: .76rem; color: #888; margin-top: .25rem; }
-    #fileList { margin-top: .6rem; display: none; }
+    #fileList { margin-top: .6rem; }
     .file-item { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: #1a6e38; font-weight: 600; margin-bottom: .25rem; }
-    .file-item .remove-btn { background: none; border: none; color: #c00; cursor: pointer; font-size: .78rem; margin-left: auto; text-decoration: underline; }
-    .file-item .file-size { font-weight: 400; color: #888; }
-    .consent-block { background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px; padding: .9rem 1rem; margin-bottom: 1.2rem; font-size: .85rem; line-height: 1.6; color: #333; }
-    .consent-row { display: flex; align-items: flex-start; gap: .6rem; margin-top: .5rem; }
+    .file-item .rm { background: none; border: none; color: #c00; cursor: pointer; font-size: .78rem; margin-left: auto; text-decoration: underline; }
+    .file-sz { font-weight: 400; color: #888; }
+    .consent-block { background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px; padding: .9rem 1rem; margin-bottom: 1.2rem; }
+    .consent-row { display: flex; align-items: flex-start; gap: .6rem; margin-top: .4rem; }
     .consent-row input[type="checkbox"] { width: 1rem; height: 1rem; flex-shrink: 0; margin-top: .18rem; accent-color: #111; }
-    .consent-row label { font-weight: 400; font-size: .88rem; cursor: pointer; color: #222; }
+    .consent-row label { font-size: .88rem; cursor: pointer; color: #222; line-height: 1.5; }
     .btn { width: 100%; padding: .82rem; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .5rem; transition: background .15s; }
-    .btn:hover:not(:disabled) { background: #333; }
+    .btn:hover { background: #333; }
     .btn:disabled { background: #aaa; cursor: not-allowed; }
-    .spinner { width: 17px; height: 17px; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { width: 17px; height: 17px; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: rot .7s linear infinite; display: none; }
+    @keyframes rot { to { transform: rotate(360deg); } }
     #msg { display: none; margin-top: 1rem; padding: .85rem 1rem; border-radius: 6px; font-size: .88rem; line-height: 1.5; }
     #msg.err { background: #fff0f0; border: 1px solid #f5c6c6; color: #9b1c1c; }
     #msg.ok  { background: #f0fff4; border: 1px solid #a7f3c1; color: #1a6e38; }
-    #successScreen { display: none; text-align: center; padding: 2rem 1rem; }
-    #successScreen .icon { font-size: 3rem; margin-bottom: 1rem; }
-    #successScreen h2 { font-size: 1.2rem; margin-bottom: .7rem; }
-    #successScreen p  { font-size: .9rem; color: #444; line-height: 1.6; }
-    @media (max-width: 520px) { .card { padding: 1.3rem 1rem 1.2rem; } .row { flex-direction: column; gap: 0; } }
+    #ok { display: none; text-align: center; padding: 2rem 1rem; }
+    #ok .ico { font-size: 3rem; margin-bottom: 1rem; }
+    #ok h2 { font-size: 1.2rem; margin-bottom: .7rem; }
+    #ok p  { font-size: .9rem; color: #444; line-height: 1.6; }
+    @media (max-width: 520px) { .card { padding: 1.3rem 1rem; } .row { flex-direction: column; gap: 0; } }
   </style>
 </head>
 <body>
@@ -73,42 +73,40 @@
   <p class="subtitle">BC Erfurt e.V.</p>
   <hr class="divider">
 
-  <!-- onsubmit="return false" verhindert nativen Browser-Submit als zweite Sicherheitsebene -->
-  <form id="mainForm" novalidate onsubmit="return false;">
-
+  <div id="formWrap">
     <fieldset>
       <legend>Reisedaten</legend>
       <div class="row">
         <div class="fg">
           <label for="reiseDatum">Reisedatum <span class="req">*</span></label>
-          <input type="date" id="reiseDatum" name="reiseDatum" required>
+          <input type="date" id="reiseDatum">
         </div>
         <div class="fg">
           <label for="zielort">Zielort <span class="req">*</span></label>
-          <input type="text" id="zielort" name="zielort" required placeholder="z.B. Berlin">
+          <input type="text" id="zielort" placeholder="z.B. Berlin">
         </div>
       </div>
       <div class="fg">
         <label for="anlass">Anlass der Reise / Spiel <span class="req">*</span></label>
-        <textarea id="anlass" name="anlass" required placeholder="z.B. Spielnr. 12345 · BC Erfurt vs. SV Musterstadt"></textarea>
+        <textarea id="anlass" placeholder="z.B. Spielnr. 12345 · BC Erfurt vs. SV Musterstadt"></textarea>
       </div>
       <div class="fg">
         <label for="mitreisende">Anzahl Mitreisende <span class="req">*</span></label>
-        <input type="number" id="mitreisende" name="mitreisende" min="1" max="20" step="1" placeholder="z.B. 2" required>
+        <input type="number" id="mitreisende" min="1" max="20" step="1" placeholder="z.B. 2">
       </div>
       <div class="fg">
         <label for="kilometer">Gefahrene Kilometer (Hin &amp; Rückfahrt) <span class="req">*</span></label>
         <div class="km-wrap">
-          <input type="number" id="kilometer" name="kilometer" required min="1" step="1"
-                 placeholder="akt. Vergütung 0,15 € pro km" style="padding-right:2.4rem">
+          <input type="number" id="kilometer" min="1" step="1"
+                 placeholder="akt. Vergütung 0,15 € pro km" style="padding-right:2.6rem">
           <span class="km-suffix">km</span>
         </div>
-        <div class="km-hint">Hin- und Rückfahrt zusammen · Vergütung: 0,15 € / km</div>
-        <div class="km-calc" id="kmCalcHint"></div>
+        <div class="hint-static">Hin- und Rückfahrt zusammen · Vergütung: 0,15 € / km</div>
+        <div class="hint-calc" id="kmCalcHint"></div>
       </div>
       <div class="fg">
         <label>Auszahlungsbetrag</label>
-        <div class="betrag-display" id="betragDisplay">– €</div>
+        <div class="betrag-box" id="betragBox">– €</div>
         <div class="betrag-note">Wird automatisch berechnet (km × 0,15 €)</div>
       </div>
     </fieldset>
@@ -118,302 +116,321 @@
       <div class="row">
         <div class="fg">
           <label for="vorname">Vorname <span class="req">*</span></label>
-          <input type="text" id="vorname" name="vorname" required autocomplete="given-name">
+          <input type="text" id="vorname" autocomplete="given-name">
         </div>
         <div class="fg">
           <label for="nachname">Nachname <span class="req">*</span></label>
-          <input type="text" id="nachname" name="nachname" required autocomplete="family-name">
+          <input type="text" id="nachname" autocomplete="family-name">
         </div>
       </div>
       <div class="fg">
         <label for="email">E-Mail <span class="req">*</span></label>
-        <input type="email" id="email" name="email" required autocomplete="email" inputmode="email">
+        <input type="email" id="email" autocomplete="email" inputmode="email">
       </div>
       <div class="fg">
         <label for="kontoinhaber">Kontoinhaber <span class="req">*</span></label>
-        <input type="text" id="kontoinhaber" name="kontoinhaber" required autocomplete="name">
+        <input type="text" id="kontoinhaber" autocomplete="name">
       </div>
       <div class="fg">
         <label for="iban">IBAN <span class="req">*</span></label>
-        <input type="text" id="iban" name="iban" placeholder="DE00 0000 0000 0000 0000 00"
-               maxlength="27" autocomplete="off" required autocapitalize="characters" spellcheck="false">
+        <input type="text" id="iban" placeholder="DE00 0000 0000 0000 0000 00"
+               maxlength="27" autocomplete="off" autocapitalize="characters" spellcheck="false">
       </div>
     </fieldset>
 
     <fieldset>
       <legend>Belege hochladen <span style="font-weight:400;color:#888;font-size:.82rem">(optional)</span></legend>
-      <div class="fg">
-        <div class="upload-area" id="uploadArea">
-          <input type="file" id="belegFiles" accept="image/*,application/pdf" multiple>
-          <div class="upload-icon">📎</div>
-          <div class="upload-text"><strong>Dateien auswählen</strong> oder hierher ziehen</div>
-          <div class="upload-hint">JPG, PNG, PDF · max. 5 MB pro Datei · mehrere Dateien möglich</div>
-        </div>
-        <div id="fileList"></div>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept="image/*,application/pdf" multiple>
+        <div class="upload-icon">📎</div>
+        <div class="upload-text"><strong>Dateien auswählen</strong> oder hierher ziehen</div>
+        <div class="upload-hint">JPG, PNG, PDF · max. 5 MB pro Datei</div>
       </div>
+      <div id="fileList"></div>
     </fieldset>
 
     <div class="consent-block">
       <div class="consent-row">
-        <input type="checkbox" id="bestaetigung" name="bestaetigung" required>
+        <input type="checkbox" id="bestaetigung">
         <label for="bestaetigung">Hiermit bestätige ich, dass die Angaben korrekt und vollständig sind.</label>
       </div>
     </div>
 
-    <button type="button" class="btn" id="submitBtn">
-      <span id="btnText">Antrag absenden</span>
-      <span class="spinner" id="spinner"></span>
+    <button type="button" id="submitBtn" class="btn">
+      <span id="btnTxt">Antrag absenden</span>
+      <span class="spin" id="spin"></span>
     </button>
     <div id="msg"></div>
-  </form>
+  </div>
 
-  <div id="successScreen">
-    <div class="icon">✅</div>
-    <h2 id="successName"></h2>
+  <div id="ok">
+    <div class="ico">✅</div>
+    <h2 id="okName"></h2>
     <p>Dein Antrag auf Erstattung der Fahrtkosten wurde erfolgreich übermittelt.<br>
        Wir melden uns in Kürze per E-Mail bei dir.</p>
   </div>
 </div>
 
+<!-- Scripts at end of body – DOM is guaranteed ready -->
 <script>
-  const PROXY_URL  = "https://script.google.com/macros/s/AKfycbzXYobUIQuU47SRntyeRXL32LBJW-DtZA4dsOeYLXOSfP6x6E5g2nm0REQhcRKy3zjM/exec";
-  const RATE       = 0.15;
-  const MAX_BYTES  = 5 * 1024 * 1024;
-  const TIMEOUT_MS = 90000;
+(function () {
+  "use strict";
 
-  let fileStore    = [];
-  let kmCalcServer = null;
-  let kmWarned     = false;
+  /* ── Konfiguration ─────────────────────────────────── */
+  var PROXY   = "https://script.google.com/macros/s/AKfycbzXYobUIQuU47SRntyeRXL32LBJW-DtZA4dsOeYLXOSfP6x6E5g2nm0REQhcRKy3zjM/exec";
+  var RATE    = 0.15;
+  var MAX_B   = 5 * 1024 * 1024;
+  var TIMEOUT = 90000;
 
-  // ── Betrag berechnen ────────────────────────────────────────
-  function updateBetrag() {
-    const km = parseFloat(document.getElementById("kilometer").value);
-    const el = document.getElementById("betragDisplay");
-    el.textContent = (!isNaN(km) && km > 0)
-      ? (km * RATE).toLocaleString("de-DE", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €"
+  /* ── State ─────────────────────────────────────────── */
+  var files        = [];   // { name, base64, mimeType, size }
+  var kmServer     = null; // Luftlinie vom Backend
+  var kmWarnShown  = false;
+  var kInhManual   = false; // Kontoinhaber manuell geändert?
+
+  /* ── DOM-Refs ──────────────────────────────────────── */
+  var $ = function(id) { return document.getElementById(id); };
+  var elKm     = $("kilometer");
+  var elBetrag = $("betragBox");
+  var elHint   = $("kmCalcHint");
+  var elKinh   = $("kontoinhaber");
+  var elUpArea = $("uploadArea");
+  var elFList  = $("fileList");
+
+  /* ── Betrag berechnen ──────────────────────────────── */
+  function calcBetrag() {
+    var km = parseFloat(elKm.value);
+    elBetrag.textContent = (km > 0)
+      ? (km * RATE).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
       : "– €";
-    kmWarned = false;
+    kmWarnShown = false;
+  }
+  elKm.addEventListener("input",  calcBetrag);
+  elKm.addEventListener("change", calcBetrag);
+
+  /* ── IBAN formatieren ──────────────────────────────── */
+  $("iban").addEventListener("input", function () {
+    var v = this.value.replace(/\s/g, "").toUpperCase();
+    this.value = v.match(/.{1,4}/g) ? v.match(/.{1,4}/g).join(" ") : v;
+  });
+
+  /* ── Kontoinhaber aus Vor-/Nachname ────────────────── */
+  elKinh.addEventListener("input", function () { kInhManual = true; });
+
+  function syncKontoinhaber() {
+    if (kInhManual) return;
+    var v = $("vorname").value.trim();
+    var n = $("nachname").value.trim();
+    var full = [v, n].filter(Boolean).join(" ");
+    if (full) elKinh.value = full;
+  }
+  $("vorname").addEventListener("blur",  syncKontoinhaber);
+  $("nachname").addEventListener("blur", syncKontoinhaber);
+
+  /* ── Zielort → KM-Luftlinie vom Backend ────────────── */
+  $("zielort").addEventListener("blur", function () {
+    var z = this.value.trim();
+    if (!z) return;
+    elHint.textContent  = "📍 Berechne Luftlinie …";
+    elHint.style.display = "block";
+    fetch(PROXY, {
+      method: "POST",
+      body:   JSON.stringify({ action: "checkKm", zielort: z, kmUser: parseFloat(elKm.value) || 0 })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (j.success && j.kmCalc) {
+        kmServer = j.kmCalc;
+        elHint.textContent = "📍 Luftlinie Erfurt → " + z + ": ca. " + j.kmCalc + " km (H+R)";
+        if (!elKm.value || parseFloat(elKm.value) <= 0) {
+          elKm.value = j.kmCalc;
+          calcBetrag();
+        }
+      } else {
+        elHint.style.display = "none";
+      }
+    })
+    .catch(function () { elHint.style.display = "none"; });
+  });
+
+  /* ── Datei-Upload ──────────────────────────────────── */
+  elUpArea.addEventListener("dragover",  function (e) { e.preventDefault(); elUpArea.classList.add("drag"); });
+  elUpArea.addEventListener("dragleave", function ()  { elUpArea.classList.remove("drag"); });
+  elUpArea.addEventListener("drop",      function (e) {
+    e.preventDefault(); elUpArea.classList.remove("drag");
+    handleFileList(e.dataTransfer.files);
+  });
+  $("fileInput").addEventListener("change", function () {
+    handleFileList(this.files);
+    this.value = "";
+  });
+
+  function handleFileList(flist) {
+    var arr = Array.prototype.slice.call(flist);
+    var pending = arr.length;
+    if (!pending) return;
+    arr.forEach(function (f) {
+      if (f.size > MAX_B) { showMsg("„" + f.name + "" ist zu groß (max. 5 MB).", "err"); pending--; return; }
+      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
+        showMsg("„" + f.name + "" – nur Bilder und PDF.", "err"); pending--; return;
+      }
+      if (files.find(function (x) { return x.name === f.name && x.size === f.size; })) { pending--; return; }
+      var reader = new FileReader();
+      reader.onerror = function () { showMsg("Lesefehler: " + f.name, "err"); if (!--pending) renderFiles(); };
+      reader.onload  = function () {
+        files.push({ name: f.name, base64: reader.result.split(",")[1], mimeType: f.type, size: f.size });
+        if (!--pending) renderFiles();
+      };
+      reader.readAsDataURL(f);
+    });
   }
 
-  // ── IBAN formatieren ────────────────────────────────────────
-  function formatIban(el) {
-    let v = el.value.replace(/\s/g,"").toUpperCase();
-    el.value = v.match(/.{1,4}/g)?.join(" ") || v;
+  function renderFiles() {
+    if (!files.length) { elFList.innerHTML = ""; elUpArea.classList.remove("has-file"); return; }
+    elUpArea.classList.add("has-file");
+    elFList.innerHTML = files.map(function (f, i) {
+      return '<div class="file-item"><span>📄</span>'
+        + '<span><strong>' + f.name + '</strong> <span class="file-sz">(' + Math.round(f.size/1024) + ' KB)</span></span>'
+        + '<button type="button" class="rm" data-i="' + i + '">Entfernen</button></div>';
+    }).join("");
+    elFList.querySelectorAll(".rm").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        files.splice(parseInt(this.getAttribute("data-i")), 1);
+        renderFiles();
+      });
+    });
   }
 
-  // ── Validierung ─────────────────────────────────────────────
+  /* ── Validierung ───────────────────────────────────── */
   function validate() {
-    const ids = ["reiseDatum","zielort","anlass","mitreisende","kilometer",
-                 "vorname","nachname","email","kontoinhaber","iban"];
-    let ok = true;
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      const empty = !el.value.trim();
-      el.classList.toggle("err", empty);
+    var ids = ["reiseDatum","zielort","anlass","mitreisende","kilometer",
+               "vorname","nachname","email","kontoinhaber","iban"];
+    var ok = true;
+    ids.forEach(function (id) {
+      var el    = $(id);
+      var empty = !el.value.trim();
+      el.classList[empty ? "add" : "remove"]("err");
       if (empty) ok = false;
     });
 
-    const datEl = document.getElementById("reiseDatum");
-    if (datEl.value) {
-      const dat   = new Date(datEl.value);
-      const heute = new Date(); heute.setHours(0,0,0,0);
-      const diff  = Math.floor((heute - dat) / 86400000);
+    /* Datumsprüfung */
+    var dEl   = $("reiseDatum");
+    if (dEl.value) {
+      var dat   = new Date(dEl.value);
+      var heute = new Date(); heute.setHours(0,0,0,0);
+      var diff  = Math.floor((heute - dat) / 86400000);
       if (dat.getFullYear() !== heute.getFullYear()) {
-        datEl.classList.add("err");
-        showMsg("Anträge können nur für Reisen im laufenden Kalenderjahr gestellt werden.", "err");
-        ok = false;
+        dEl.classList.add("err");
+        showMsg("Anträge nur für Reisen im laufenden Kalenderjahr möglich.", "err"); ok = false;
       } else if (diff > 30) {
-        datEl.classList.add("err");
-        showMsg("Anträge können nur bis zu 30 Tage nach der Reise gestellt werden.", "err");
-        ok = false;
+        dEl.classList.add("err");
+        showMsg("Anträge nur bis zu 30 Tage nach der Reise möglich.", "err"); ok = false;
       }
     }
 
-    const kmVal = parseFloat(document.getElementById("kilometer").value);
-    if (isNaN(kmVal) || kmVal <= 0) { document.getElementById("kilometer").classList.add("err"); ok = false; }
+    /* km > 0 */
+    var km = parseFloat(elKm.value);
+    if (isNaN(km) || km <= 0) { elKm.classList.add("err"); ok = false; }
 
-    if (!document.getElementById("bestaetigung").checked) {
-      document.getElementById("bestaetigung").style.outline = "2px solid #c00"; ok = false;
-    } else { document.getElementById("bestaetigung").style.outline = ""; }
+    /* Checkbox */
+    var cb = $("bestaetigung");
+    if (!cb.checked) { cb.style.outline = "2px solid #c00"; ok = false; }
+    else              { cb.style.outline = ""; }
 
     return ok;
   }
 
-  function showMsg(text, type) {
-    const m = document.getElementById("msg");
-    m.textContent = text; m.className = type; m.style.display = "block";
-    m.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  /* ── Nachrichten ───────────────────────────────────── */
+  function showMsg(txt, cls) {
+    var m = $("msg");
+    m.textContent    = txt;
+    m.className      = cls;
+    m.style.display  = "block";
+    m.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
-  function resetBtn() {
-    document.getElementById("submitBtn").disabled = false;
-    document.getElementById("btnText").textContent   = "Antrag absenden";
-    document.getElementById("spinner").style.display = "none";
+  function setBusy(busy) {
+    $("submitBtn").disabled       = busy;
+    $("btnTxt").textContent       = busy ? "Wird gesendet …" : "Antrag absenden";
+    $("spin").style.display       = busy ? "inline-block" : "none";
   }
 
-  // ── Upload ──────────────────────────────────────────────────
-  function readAsBase64(file) {
-    return new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onerror = () => rej(new Error("Lesefehler"));
-      r.onload  = () => res(r.result.split(",")[1]);
-      r.readAsDataURL(file);
-    });
-  }
+  /* ── Submit ────────────────────────────────────────── */
+  $("submitBtn").addEventListener("click", function () {
+    $("msg").style.display = "none";
 
-  function removeFile(idx) { fileStore.splice(idx, 1); renderFileList(); }
-
-  function renderFileList() {
-    const el = document.getElementById("fileList");
-    if (!fileStore.length) { el.style.display = "none"; uploadArea.classList.remove("has-file"); return; }
-    uploadArea.classList.add("has-file");
-    el.style.display = "block";
-    el.innerHTML = fileStore.map((f, i) =>
-      `<div class="file-item"><span>📄</span>
-        <span><strong>${f.name}</strong> <span class="file-size">(${(f.size/1024).toFixed(0)} KB)</span></span>
-        <button type="button" class="remove-btn" onclick="removeFile(${i})">Entfernen</button>
-      </div>`).join("");
-  }
-
-  async function addFiles(files) {
-    for (const f of files) {
-      if (f.size > MAX_BYTES) { showMsg("„" + f.name + "" ist zu groß (max. 5 MB).", "err"); continue; }
-      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
-        showMsg("„" + f.name + "" – nur Bilder und PDF erlaubt.", "err"); continue;
-      }
-      if (fileStore.find(s => s.name === f.name && s.size === f.size)) continue;
-      try {
-        const base64 = await readAsBase64(f);
-        fileStore.push({ name: f.name, base64, mimeType: f.type, size: f.size });
-      } catch(err) { showMsg("Fehler beim Lesen: " + err.message, "err"); }
+    if (!validate()) {
+      showMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err");
+      return;
     }
-    renderFileList();
-  }
 
-  // ── Alles nach DOM-Ready ────────────────────────────────────
-  document.addEventListener("DOMContentLoaded", function() {
+    var km = parseFloat(elKm.value);
 
-    // km → Betrag
-    const kmEl = document.getElementById("kilometer");
-    kmEl.addEventListener("input",  updateBetrag);
-    kmEl.addEventListener("change", updateBetrag);
-
-    // IBAN formatieren
-    document.getElementById("iban").addEventListener("input", function() { formatIban(this); });
-
-    // Kontoinhaber Auto-Fill
-    let kontoinhaberManual = false;
-    document.getElementById("kontoinhaber").addEventListener("input", function() { kontoinhaberManual = true; });
-    ["vorname","nachname"].forEach(function(id) {
-      document.getElementById(id).addEventListener("blur", function() {
-        if (kontoinhaberManual) return;
-        const v = document.getElementById("vorname").value.trim();
-        const n = document.getElementById("nachname").value.trim();
-        document.getElementById("kontoinhaber").value = [v,n].filter(Boolean).join(" ");
-      });
-    });
-
-    // Zielort blur → KM-Luftlinie vom Backend
-    document.getElementById("zielort").addEventListener("blur", async function() {
-      const zielort = this.value.trim();
-      if (!zielort) return;
-      const hint = document.getElementById("kmCalcHint");
-      hint.textContent = "📍 Berechne Luftlinie …";
-      hint.style.display = "block";
-      try {
-        const res  = await fetch(PROXY_URL, { method:"POST",
-          body: JSON.stringify({ action:"checkKm", zielort, kmUser: parseFloat(kmEl.value)||0 }) });
-        const json = await res.json();
-        if (json.success && json.kmCalc) {
-          kmCalcServer = json.kmCalc;
-          hint.textContent = "📍 Luftlinie Erfurt → " + zielort + ": ca. " + json.kmCalc + " km (H+R)";
-          if (!kmEl.value) { kmEl.value = json.kmCalc; updateBetrag(); }
-        } else { hint.style.display = "none"; }
-      } catch(e) { hint.style.display = "none"; }
-    });
-
-    // Upload: Drag & Drop + File-Input
-    const uploadArea = document.getElementById("uploadArea");
-    uploadArea.addEventListener("dragover",  function(e) { e.preventDefault(); uploadArea.classList.add("drag"); });
-    uploadArea.addEventListener("dragleave", function()  { uploadArea.classList.remove("drag"); });
-    uploadArea.addEventListener("drop", function(e) {
-      e.preventDefault(); uploadArea.classList.remove("drag");
-      addFiles(Array.from(e.dataTransfer.files));
-    });
-    document.getElementById("belegFiles").addEventListener("change", function() {
-      addFiles(Array.from(this.files)); this.value = "";
-    });
-
-    // ── Submit-Button (type="button" → kein nativer Submit) ──
-    document.getElementById("submitBtn").addEventListener("click", async function() {
-      document.getElementById("msg").style.display = "none";
-      if (!validate()) { showMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err"); return; }
-
-      const km = parseFloat(document.getElementById("kilometer").value);
-
-      // KM-Abweichungs-Dialog
-      if (kmCalcServer !== null && !kmWarned) {
-        const abw = (km - kmCalcServer) / kmCalcServer;
-        if (abw > 0.20) {
-          kmWarned = true;
-          const confirmed = confirm(
-            "⚠️ Hinweis zur Kilometerangabe\n\n"
-            + "Du hast " + km + " km angegeben.\n"
-            + "Die Luftlinie Erfurt → " + document.getElementById("zielort").value.trim()
-            + " (Hin+Rück) beträgt ca. " + kmCalcServer + " km.\n\n"
-            + "Abweichung: " + Math.round(abw*100) + " % (Schwelle: 20 %).\n\n"
-            + "Trotzdem absenden? (Luftlinie wird in der Beschreibung vermerkt.)"
-          );
-          if (!confirmed) return;
-        }
+    /* KM-Abweichungs-Dialog */
+    if (kmServer !== null && !kmWarnShown) {
+      var abw = (km - kmServer) / kmServer;
+      if (abw > 0.20) {
+        kmWarnShown = true;
+        var go = confirm(
+          "⚠️ Hinweis zur Kilometerangabe\n\n"
+          + "Angegeben: " + km + " km\n"
+          + "Luftlinie Erfurt → " + $("zielort").value.trim() + " (H+R): ca. " + kmServer + " km\n"
+          + "Abweichung: " + Math.round(abw * 100) + " % (Schwelle: 20 %)\n\n"
+          + "Trotzdem absenden? (Luftlinie wird in der Beschreibung vermerkt.)"
+        );
+        if (!go) return;
       }
+    }
 
-      const betrag = parseFloat((km * RATE).toFixed(2));
-      const btn    = document.getElementById("submitBtn");
-      btn.disabled = true;
-      document.getElementById("btnText").textContent   = "Wird gesendet …";
-      document.getElementById("spinner").style.display = "inline-block";
+    var betrag = parseFloat((km * RATE).toFixed(2));
+    setBusy(true);
 
-      const payload = {
-        reiseDatum:   document.getElementById("reiseDatum").value,
-        zielort:      document.getElementById("zielort").value.trim(),
-        anlass:       document.getElementById("anlass").value.trim(),
-        mitreisende:  parseInt(document.getElementById("mitreisende").value),
-        kilometer:    km,
-        betrag,
-        vorname:      document.getElementById("vorname").value.trim(),
-        nachname:     document.getElementById("nachname").value.trim(),
-        email:        document.getElementById("email").value.trim(),
-        kontoinhaber: document.getElementById("kontoinhaber").value.trim(),
-        iban:         document.getElementById("iban").value.replace(/\s/g,"").toUpperCase(),
-        belege:       fileStore.map(function(f) { return { fileName: f.name, mimeType: f.mimeType, base64: f.base64 }; }),
-      };
+    var payload = {
+      reiseDatum:   $("reiseDatum").value,
+      zielort:      $("zielort").value.trim(),
+      anlass:       $("anlass").value.trim(),
+      mitreisende:  parseInt($("mitreisende").value, 10),
+      kilometer:    km,
+      betrag:       betrag,
+      vorname:      $("vorname").value.trim(),
+      nachname:     $("nachname").value.trim(),
+      email:        $("email").value.trim(),
+      kontoinhaber: $("kontoinhaber").value.trim(),
+      iban:         $("iban").value.replace(/\s/g, "").toUpperCase(),
+      belege:       files.map(function (f) {
+                      return { fileName: f.name, mimeType: f.mimeType, base64: f.base64 };
+                    }),
+    };
 
-      try {
-        const ctrl = new AbortController();
-        const tid  = setTimeout(function() { ctrl.abort(); }, TIMEOUT_MS);
-        const res  = await fetch(PROXY_URL, { method:"POST", signal: ctrl.signal, body: JSON.stringify(payload) });
-        clearTimeout(tid);
-        const json = await res.json();
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var tid  = setTimeout(function () { if (ctrl) ctrl.abort(); }, TIMEOUT);
 
-        if (json.success) {
-          document.getElementById("mainForm").style.display      = "none";
-          document.getElementById("successScreen").style.display = "block";
-          document.getElementById("successName").textContent     = "Danke, " + payload.vorname + "!";
-          window.scrollTo({ top:0, behavior:"smooth" });
+    var opts = { method: "POST", body: JSON.stringify(payload) };
+    if (ctrl) opts.signal = ctrl.signal;
+
+    fetch(PROXY, opts)
+      .then(function (r) { clearTimeout(tid); return r.json(); })
+      .then(function (j) {
+        if (j.success) {
+          $("formWrap").style.display = "none";
+          $("ok").style.display       = "block";
+          $("okName").textContent     = "Danke, " + payload.vorname + "!";
+          window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
-          showMsg("❌ " + (json.error || "Unbekannter Fehler."), "err");
-          resetBtn();
+          showMsg("❌ " + (j.error || "Unbekannter Fehler."), "err");
+          setBusy(false);
         }
-      } catch(err) {
+      })
+      .catch(function (err) {
+        clearTimeout(tid);
         showMsg("❌ " + (err.name === "AbortError"
-          ? "Zeitüberschreitung. Bitte erneut versuchen."
+          ? "Zeitüberschreitung – bitte erneut versuchen."
           : "Netzwerkfehler: " + err.message), "err");
-        resetBtn();
-      }
-    }); // Ende submitBtn click
+        setBusy(false);
+      });
+  });
 
-  }); // Ende DOMContentLoaded
+})(); // IIFE – kein globaler Namespace-Müll
 </script>
 </body>
 </html>
