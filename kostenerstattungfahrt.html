@@ -21,7 +21,7 @@
     input[type="text"], input[type="email"], input[type="number"], input[type="date"], textarea {
       border: 1.5px solid #ccc; border-radius: 5px; padding: 0 .7rem;
       font-size: .92rem; font-family: Arial, sans-serif; background: #fafafa;
-      width: 100%; color: #111; transition: border-color .15s, box-shadow .15s; display: block;
+      width: 100%; color: #111; transition: border-color .15s; display: block;
     }
     input[type="text"], input[type="email"], input[type="number"], input[type="date"] { height: 2.5rem; }
     textarea { padding: .6rem .7rem; resize: vertical; min-height: 70px; line-height: 1.45; }
@@ -32,12 +32,12 @@
     input[type="number"] { -moz-appearance: textfield; }
     .km-wrap { position: relative; }
     .km-suffix { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); font-size: .88rem; color: #888; pointer-events: none; }
-    .hint-static { font-size: .75rem; color: #888; margin-top: .3rem; }
-    .hint-calc   { font-size: .75rem; color: #1558b0; margin-top: .25rem; display: none; }
-    .betrag-box  { background: #f0f7ff; border: 1.5px solid #b3d4f0; border-radius: 5px; height: 2.5rem; display: flex; align-items: center; padding: 0 .75rem; font-size: 1.05rem; font-weight: 700; color: #1558b0; }
+    .hint-s { font-size: .75rem; color: #888; margin-top: .3rem; }
+    .hint-c { font-size: .75rem; color: #1558b0; margin-top: .25rem; display: none; }
+    .betrag-box { background: #f0f7ff; border: 1.5px solid #b3d4f0; border-radius: 5px; height: 2.5rem; display: flex; align-items: center; padding: 0 .75rem; font-size: 1.05rem; font-weight: 700; color: #1558b0; }
     .betrag-note { font-size: .74rem; color: #888; margin-top: .28rem; }
-    .upload-area { border: 2px dashed #bbb; border-radius: 6px; padding: 1.2rem 1rem; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; background: #fafafa; position: relative; overflow: hidden; }
-    .upload-area:hover, .upload-area.drag { border-color: #111; background: #f0f0f0; }
+    .upload-area { border: 2px dashed #bbb; border-radius: 6px; padding: 1.2rem 1rem; text-align: center; cursor: pointer; background: #fafafa; position: relative; overflow: hidden; transition: border-color .15s, background .15s; }
+    .upload-area:hover { border-color: #111; background: #f0f0f0; }
     .upload-area.has-file { border-color: #1a6e38; background: #f0fff4; }
     .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
     .upload-icon { font-size: 1.8rem; margin-bottom: .3rem; }
@@ -46,24 +46,24 @@
     .upload-hint { font-size: .76rem; color: #888; margin-top: .25rem; }
     #fileList { margin-top: .6rem; }
     .file-item { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: #1a6e38; font-weight: 600; margin-bottom: .25rem; }
-    .file-item .rm { background: none; border: none; color: #c00; cursor: pointer; font-size: .78rem; margin-left: auto; text-decoration: underline; }
+    .file-item button { background: none; border: none; color: #c00; cursor: pointer; font-size: .78rem; margin-left: auto; text-decoration: underline; }
     .file-sz { font-weight: 400; color: #888; }
     .consent-block { background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px; padding: .9rem 1rem; margin-bottom: 1.2rem; }
     .consent-row { display: flex; align-items: flex-start; gap: .6rem; margin-top: .4rem; }
     .consent-row input[type="checkbox"] { width: 1rem; height: 1rem; flex-shrink: 0; margin-top: .18rem; accent-color: #111; }
     .consent-row label { font-size: .88rem; cursor: pointer; color: #222; line-height: 1.5; }
-    .btn { width: 100%; padding: .82rem; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .5rem; transition: background .15s; }
-    .btn:hover { background: #333; }
-    .btn:disabled { background: #aaa; cursor: not-allowed; }
+    #submitBtn { width: 100%; padding: .82rem; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .5rem; transition: background .15s; margin-top: .5rem; }
+    #submitBtn:hover:not(:disabled) { background: #333; }
+    #submitBtn:disabled { background: #aaa; cursor: not-allowed; }
     .spin { width: 17px; height: 17px; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: rot .7s linear infinite; display: none; }
     @keyframes rot { to { transform: rotate(360deg); } }
     #msg { display: none; margin-top: 1rem; padding: .85rem 1rem; border-radius: 6px; font-size: .88rem; line-height: 1.5; }
     #msg.err { background: #fff0f0; border: 1px solid #f5c6c6; color: #9b1c1c; }
     #msg.ok  { background: #f0fff4; border: 1px solid #a7f3c1; color: #1a6e38; }
-    #ok { display: none; text-align: center; padding: 2rem 1rem; }
-    #ok .ico { font-size: 3rem; margin-bottom: 1rem; }
-    #ok h2 { font-size: 1.2rem; margin-bottom: .7rem; }
-    #ok p  { font-size: .9rem; color: #444; line-height: 1.6; }
+    #successScreen { display: none; text-align: center; padding: 2rem 1rem; }
+    #successScreen .ico { font-size: 3rem; margin-bottom: 1rem; }
+    #successScreen h2 { font-size: 1.2rem; margin-bottom: .7rem; }
+    #successScreen p  { font-size: .9rem; color: #444; line-height: 1.6; }
     @media (max-width: 520px) { .card { padding: 1.3rem 1rem; } .row { flex-direction: column; gap: 0; } }
   </style>
 </head>
@@ -101,8 +101,8 @@
                  placeholder="akt. Vergütung 0,15 € pro km" style="padding-right:2.6rem">
           <span class="km-suffix">km</span>
         </div>
-        <div class="hint-static">Hin- und Rückfahrt zusammen · Vergütung: 0,15 € / km</div>
-        <div class="hint-calc" id="kmCalcHint"></div>
+        <div class="hint-s">Hin- und Rückfahrt zusammen · Vergütung: 0,15 € / km</div>
+        <div class="hint-c" id="kmCalcHint"></div>
       </div>
       <div class="fg">
         <label>Auszahlungsbetrag</label>
@@ -156,14 +156,14 @@
       </div>
     </div>
 
-    <button type="button" id="submitBtn" class="btn">
+    <button type="button" id="submitBtn">
       <span id="btnTxt">Antrag absenden</span>
       <span class="spin" id="spin"></span>
     </button>
     <div id="msg"></div>
   </div>
 
-  <div id="ok">
+  <div id="successScreen">
     <div class="ico">✅</div>
     <h2 id="okName"></h2>
     <p>Dein Antrag auf Erstattung der Fahrtkosten wurde erfolgreich übermittelt.<br>
@@ -171,266 +171,315 @@
   </div>
 </div>
 
-<!-- Scripts at end of body – DOM is guaranteed ready -->
+<!-- ═══════════════════════════════════════════════════════
+     Script steht NACH allen HTML-Elementen → DOM garantiert bereit
+     Kein DOMContentLoaded nötig, kein IIFE-Closure-Problem
+     ═══════════════════════════════════════════════════════ -->
 <script>
-(function () {
-  "use strict";
-
-  /* ── Konfiguration ─────────────────────────────────── */
+  /* ── Konstanten ──────────────────────────────────── */
   var PROXY   = "https://script.google.com/macros/s/AKfycbzXYobUIQuU47SRntyeRXL32LBJW-DtZA4dsOeYLXOSfP6x6E5g2nm0REQhcRKy3zjM/exec";
   var RATE    = 0.15;
   var MAX_B   = 5 * 1024 * 1024;
   var TIMEOUT = 90000;
 
-  /* ── State ─────────────────────────────────────────── */
-  var files        = [];   // { name, base64, mimeType, size }
-  var kmServer     = null; // Luftlinie vom Backend
-  var kmWarnShown  = false;
-  var kInhManual   = false; // Kontoinhaber manuell geändert?
+  /* ── Zustand ─────────────────────────────────────── */
+  var uploadedFiles = [];
+  var kmVomServer   = null;
+  var kmWarnOk      = false;
+  var kinhManual    = false;
 
-  /* ── DOM-Refs ──────────────────────────────────────── */
-  var $ = function(id) { return document.getElementById(id); };
-  var elKm     = $("kilometer");
-  var elBetrag = $("betragBox");
-  var elHint   = $("kmCalcHint");
-  var elKinh   = $("kontoinhaber");
-  var elUpArea = $("uploadArea");
-  var elFList  = $("fileList");
+  /* ── DOM-Elemente direkt referenzieren ───────────── */
+  var inKm    = document.getElementById("kilometer");
+  var inVorn  = document.getElementById("vorname");
+  var inNach  = document.getElementById("nachname");
+  var inKinh  = document.getElementById("kontoinhaber");
+  var inIban  = document.getElementById("iban");
+  var inZiel  = document.getElementById("zielort");
+  var boxBet  = document.getElementById("betragBox");
+  var hintKm  = document.getElementById("kmCalcHint");
+  var btnSend = document.getElementById("submitBtn");
+  var divMsg  = document.getElementById("msg");
 
-  /* ── Betrag berechnen ──────────────────────────────── */
+  /* ══════════════════════════════════════════════════
+     BETRAG BERECHNEN
+     ══════════════════════════════════════════════════ */
   function calcBetrag() {
-    var km = parseFloat(elKm.value);
-    elBetrag.textContent = (km > 0)
-      ? (km * RATE).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
-      : "– €";
-    kmWarnShown = false;
+    var km = parseFloat(inKm.value);
+    if (km > 0) {
+      boxBet.textContent = (km * RATE).toLocaleString("de-DE",
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+    } else {
+      boxBet.textContent = "– €";
+    }
+    kmWarnOk = false;
   }
-  elKm.addEventListener("input",  calcBetrag);
-  elKm.addEventListener("change", calcBetrag);
 
-  /* ── IBAN formatieren ──────────────────────────────── */
-  $("iban").addEventListener("input", function () {
+  inKm.addEventListener("input",  calcBetrag);
+  inKm.addEventListener("change", calcBetrag);
+
+  /* ══════════════════════════════════════════════════
+     IBAN FORMATIEREN
+     ══════════════════════════════════════════════════ */
+  inIban.addEventListener("input", function() {
     var v = this.value.replace(/\s/g, "").toUpperCase();
-    this.value = v.match(/.{1,4}/g) ? v.match(/.{1,4}/g).join(" ") : v;
+    var m = v.match(/.{1,4}/g);
+    this.value = m ? m.join(" ") : v;
   });
 
-  /* ── Kontoinhaber aus Vor-/Nachname ────────────────── */
-  elKinh.addEventListener("input", function () { kInhManual = true; });
+  /* ══════════════════════════════════════════════════
+     KONTOINHABER AUTO-FILL
+     ══════════════════════════════════════════════════ */
+  inKinh.addEventListener("input", function() {
+    kinhManual = true;
+  });
 
-  function syncKontoinhaber() {
-    if (kInhManual) return;
-    var v = $("vorname").value.trim();
-    var n = $("nachname").value.trim();
-    var full = [v, n].filter(Boolean).join(" ");
-    if (full) elKinh.value = full;
+  function fillKontoinhaber() {
+    if (kinhManual) return;
+    var v = inVorn.value.trim();
+    var n = inNach.value.trim();
+    if (v || n) {
+      inKinh.value = (v + " " + n).trim();
+    }
   }
-  $("vorname").addEventListener("blur",  syncKontoinhaber);
-  $("nachname").addEventListener("blur", syncKontoinhaber);
 
-  /* ── Zielort → KM-Luftlinie vom Backend ────────────── */
-  $("zielort").addEventListener("blur", function () {
-    var z = this.value.trim();
+  inVorn.addEventListener("blur", fillKontoinhaber);
+  inNach.addEventListener("blur", fillKontoinhaber);
+
+  /* ══════════════════════════════════════════════════
+     ZIELORT BLUR → LUFTLINIE VOM BACKEND
+     ══════════════════════════════════════════════════ */
+  inZiel.addEventListener("blur", function() {
+    var z = inZiel.value.trim();
     if (!z) return;
-    elHint.textContent  = "📍 Berechne Luftlinie …";
-    elHint.style.display = "block";
+    hintKm.textContent  = "📍 Berechne Luftlinie …";
+    hintKm.style.display = "block";
+
     fetch(PROXY, {
       method: "POST",
-      body:   JSON.stringify({ action: "checkKm", zielort: z, kmUser: parseFloat(elKm.value) || 0 })
+      body:   JSON.stringify({ action: "checkKm", zielort: z, kmUser: parseFloat(inKm.value) || 0 })
     })
-    .then(function (r) { return r.json(); })
-    .then(function (j) {
+    .then(function(r) { return r.json(); })
+    .then(function(j) {
       if (j.success && j.kmCalc) {
-        kmServer = j.kmCalc;
-        elHint.textContent = "📍 Luftlinie Erfurt → " + z + ": ca. " + j.kmCalc + " km (H+R)";
-        if (!elKm.value || parseFloat(elKm.value) <= 0) {
-          elKm.value = j.kmCalc;
+        kmVomServer = j.kmCalc;
+        hintKm.textContent = "📍 Luftlinie Erfurt → " + z + ": ca. " + j.kmCalc + " km (H+R)";
+        if (!(parseFloat(inKm.value) > 0)) {
+          inKm.value = j.kmCalc;
           calcBetrag();
         }
       } else {
-        elHint.style.display = "none";
+        hintKm.style.display = "none";
       }
     })
-    .catch(function () { elHint.style.display = "none"; });
+    .catch(function() {
+      hintKm.style.display = "none";
+    });
   });
 
-  /* ── Datei-Upload ──────────────────────────────────── */
-  elUpArea.addEventListener("dragover",  function (e) { e.preventDefault(); elUpArea.classList.add("drag"); });
-  elUpArea.addEventListener("dragleave", function ()  { elUpArea.classList.remove("drag"); });
-  elUpArea.addEventListener("drop",      function (e) {
-    e.preventDefault(); elUpArea.classList.remove("drag");
-    handleFileList(e.dataTransfer.files);
+  /* ══════════════════════════════════════════════════
+     DATEI-UPLOAD
+     ══════════════════════════════════════════════════ */
+  var uploadArea = document.getElementById("uploadArea");
+  var fileInput  = document.getElementById("fileInput");
+  var fileList   = document.getElementById("fileList");
+
+  uploadArea.addEventListener("dragover", function(e) {
+    e.preventDefault();
+    uploadArea.style.borderColor = "#111";
+    uploadArea.style.background  = "#f0f0f0";
   });
-  $("fileInput").addEventListener("change", function () {
-    handleFileList(this.files);
+  uploadArea.addEventListener("dragleave", function() {
+    uploadArea.style.borderColor = "";
+    uploadArea.style.background  = "";
+  });
+  uploadArea.addEventListener("drop", function(e) {
+    e.preventDefault();
+    uploadArea.style.borderColor = "";
+    uploadArea.style.background  = "";
+    verarbeiteFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener("change", function() {
+    verarbeiteFiles(this.files);
     this.value = "";
   });
 
-  function handleFileList(flist) {
+  function verarbeiteFiles(flist) {
     var arr = Array.prototype.slice.call(flist);
-    var pending = arr.length;
-    if (!pending) return;
-    arr.forEach(function (f) {
-      if (f.size > MAX_B) { showMsg("„" + f.name + "" ist zu groß (max. 5 MB).", "err"); pending--; return; }
+    arr.forEach(function(f) {
+      if (f.size > MAX_B) { zeigMsg("„" + f.name + "" zu groß (max. 5 MB).", "err"); return; }
       if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
-        showMsg("„" + f.name + "" – nur Bilder und PDF.", "err"); pending--; return;
+        zeigMsg("„" + f.name + "" – nur Bilder/PDF.", "err"); return;
       }
-      if (files.find(function (x) { return x.name === f.name && x.size === f.size; })) { pending--; return; }
-      var reader = new FileReader();
-      reader.onerror = function () { showMsg("Lesefehler: " + f.name, "err"); if (!--pending) renderFiles(); };
-      reader.onload  = function () {
-        files.push({ name: f.name, base64: reader.result.split(",")[1], mimeType: f.type, size: f.size });
-        if (!--pending) renderFiles();
+      var dup = uploadedFiles.some(function(x) { return x.name === f.name && x.size === f.size; });
+      if (dup) return;
+      var rd = new FileReader();
+      rd.onload = function() {
+        uploadedFiles.push({ name: f.name, base64: rd.result.split(",")[1], mimeType: f.type, size: f.size });
+        renderFiles();
       };
-      reader.readAsDataURL(f);
+      rd.readAsDataURL(f);
     });
   }
 
   function renderFiles() {
-    if (!files.length) { elFList.innerHTML = ""; elUpArea.classList.remove("has-file"); return; }
-    elUpArea.classList.add("has-file");
-    elFList.innerHTML = files.map(function (f, i) {
-      return '<div class="file-item"><span>📄</span>'
+    if (!uploadedFiles.length) {
+      fileList.innerHTML = "";
+      uploadArea.classList.remove("has-file");
+      return;
+    }
+    uploadArea.classList.add("has-file");
+    fileList.innerHTML = uploadedFiles.map(function(f, i) {
+      return '<div class="file-item">'
+        + '<span>📄</span>'
         + '<span><strong>' + f.name + '</strong> <span class="file-sz">(' + Math.round(f.size/1024) + ' KB)</span></span>'
-        + '<button type="button" class="rm" data-i="' + i + '">Entfernen</button></div>';
+        + '<button type="button" onclick="removeFile(' + i + ')">Entfernen</button>'
+        + '</div>';
     }).join("");
-    elFList.querySelectorAll(".rm").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        files.splice(parseInt(this.getAttribute("data-i")), 1);
-        renderFiles();
-      });
-    });
   }
 
-  /* ── Validierung ───────────────────────────────────── */
+  function removeFile(i) {
+    uploadedFiles.splice(i, 1);
+    renderFiles();
+  }
+
+  /* ══════════════════════════════════════════════════
+     VALIDIERUNG
+     ══════════════════════════════════════════════════ */
   function validate() {
     var ids = ["reiseDatum","zielort","anlass","mitreisende","kilometer",
                "vorname","nachname","email","kontoinhaber","iban"];
     var ok = true;
-    ids.forEach(function (id) {
-      var el    = $(id);
-      var empty = !el.value.trim();
-      el.classList[empty ? "add" : "remove"]("err");
-      if (empty) ok = false;
+
+    ids.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el.value.trim()) { el.classList.add("err"); ok = false; }
+      else                   { el.classList.remove("err"); }
     });
 
     /* Datumsprüfung */
-    var dEl   = $("reiseDatum");
+    var dEl = document.getElementById("reiseDatum");
     if (dEl.value) {
       var dat   = new Date(dEl.value);
       var heute = new Date(); heute.setHours(0,0,0,0);
       var diff  = Math.floor((heute - dat) / 86400000);
       if (dat.getFullYear() !== heute.getFullYear()) {
         dEl.classList.add("err");
-        showMsg("Anträge nur für Reisen im laufenden Kalenderjahr möglich.", "err"); ok = false;
+        zeigMsg("Anträge nur für Reisen im laufenden Kalenderjahr möglich.", "err");
+        ok = false;
       } else if (diff > 30) {
         dEl.classList.add("err");
-        showMsg("Anträge nur bis zu 30 Tage nach der Reise möglich.", "err"); ok = false;
+        zeigMsg("Anträge nur bis zu 30 Tage nach der Reise möglich.", "err");
+        ok = false;
       }
     }
 
     /* km > 0 */
-    var km = parseFloat(elKm.value);
-    if (isNaN(km) || km <= 0) { elKm.classList.add("err"); ok = false; }
+    if (!(parseFloat(inKm.value) > 0)) {
+      inKm.classList.add("err");
+      ok = false;
+    }
 
     /* Checkbox */
-    var cb = $("bestaetigung");
+    var cb = document.getElementById("bestaetigung");
     if (!cb.checked) { cb.style.outline = "2px solid #c00"; ok = false; }
     else              { cb.style.outline = ""; }
 
     return ok;
   }
 
-  /* ── Nachrichten ───────────────────────────────────── */
-  function showMsg(txt, cls) {
-    var m = $("msg");
-    m.textContent    = txt;
-    m.className      = cls;
-    m.style.display  = "block";
-    m.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  /* ══════════════════════════════════════════════════
+     HILFSFUNKTIONEN
+     ══════════════════════════════════════════════════ */
+  function zeigMsg(txt, cls) {
+    divMsg.textContent   = txt;
+    divMsg.className     = cls;
+    divMsg.style.display = "block";
+    divMsg.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function setBusy(busy) {
-    $("submitBtn").disabled       = busy;
-    $("btnTxt").textContent       = busy ? "Wird gesendet …" : "Antrag absenden";
-    $("spin").style.display       = busy ? "inline-block" : "none";
+    btnSend.disabled                           = busy;
+    document.getElementById("btnTxt").textContent = busy ? "Wird gesendet …" : "Antrag absenden";
+    document.getElementById("spin").style.display = busy ? "inline-block" : "none";
   }
 
-  /* ── Submit ────────────────────────────────────────── */
-  $("submitBtn").addEventListener("click", function () {
-    $("msg").style.display = "none";
+  /* ══════════════════════════════════════════════════
+     SUBMIT
+     ══════════════════════════════════════════════════ */
+  btnSend.addEventListener("click", function() {
+
+    divMsg.style.display = "none";
 
     if (!validate()) {
-      showMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err");
+      zeigMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err");
       return;
     }
 
-    var km = parseFloat(elKm.value);
+    var km = parseFloat(inKm.value);
 
     /* KM-Abweichungs-Dialog */
-    if (kmServer !== null && !kmWarnShown) {
-      var abw = (km - kmServer) / kmServer;
+    if (kmVomServer !== null && !kmWarnOk) {
+      var abw = (km - kmVomServer) / kmVomServer;
       if (abw > 0.20) {
-        kmWarnShown = true;
-        var go = confirm(
+        kmWarnOk = true;
+        var weiter = confirm(
           "⚠️ Hinweis zur Kilometerangabe\n\n"
           + "Angegeben: " + km + " km\n"
-          + "Luftlinie Erfurt → " + $("zielort").value.trim() + " (H+R): ca. " + kmServer + " km\n"
-          + "Abweichung: " + Math.round(abw * 100) + " % (Schwelle: 20 %)\n\n"
+          + "Luftlinie Erfurt → " + inZiel.value.trim() + " (H+R): ca. " + kmVomServer + " km\n"
+          + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: 20%)\n\n"
           + "Trotzdem absenden? (Luftlinie wird in der Beschreibung vermerkt.)"
         );
-        if (!go) return;
+        if (!weiter) return;
       }
     }
 
-    var betrag = parseFloat((km * RATE).toFixed(2));
+    var betrag = Math.round(km * RATE * 100) / 100;
     setBusy(true);
 
     var payload = {
-      reiseDatum:   $("reiseDatum").value,
-      zielort:      $("zielort").value.trim(),
-      anlass:       $("anlass").value.trim(),
-      mitreisende:  parseInt($("mitreisende").value, 10),
+      reiseDatum:   document.getElementById("reiseDatum").value,
+      zielort:      inZiel.value.trim(),
+      anlass:       document.getElementById("anlass").value.trim(),
+      mitreisende:  parseInt(document.getElementById("mitreisende").value, 10),
       kilometer:    km,
       betrag:       betrag,
-      vorname:      $("vorname").value.trim(),
-      nachname:     $("nachname").value.trim(),
-      email:        $("email").value.trim(),
-      kontoinhaber: $("kontoinhaber").value.trim(),
-      iban:         $("iban").value.replace(/\s/g, "").toUpperCase(),
-      belege:       files.map(function (f) {
+      vorname:      inVorn.value.trim(),
+      nachname:     inNach.value.trim(),
+      email:        document.getElementById("email").value.trim(),
+      kontoinhaber: inKinh.value.trim(),
+      iban:         inIban.value.replace(/\s/g, "").toUpperCase(),
+      belege:       uploadedFiles.map(function(f) {
                       return { fileName: f.name, mimeType: f.mimeType, base64: f.base64 };
-                    }),
+                    })
     };
 
-    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var tid  = setTimeout(function () { if (ctrl) ctrl.abort(); }, TIMEOUT);
-
+    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var tid  = setTimeout(function() { if (ctrl) ctrl.abort(); }, TIMEOUT);
     var opts = { method: "POST", body: JSON.stringify(payload) };
     if (ctrl) opts.signal = ctrl.signal;
 
     fetch(PROXY, opts)
-      .then(function (r) { clearTimeout(tid); return r.json(); })
-      .then(function (j) {
+      .then(function(r)  { clearTimeout(tid); return r.json(); })
+      .then(function(j)  {
         if (j.success) {
-          $("formWrap").style.display = "none";
-          $("ok").style.display       = "block";
-          $("okName").textContent     = "Danke, " + payload.vorname + "!";
+          document.getElementById("formWrap").style.display    = "none";
+          document.getElementById("successScreen").style.display = "block";
+          document.getElementById("okName").textContent        = "Danke, " + payload.vorname + "!";
           window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
-          showMsg("❌ " + (j.error || "Unbekannter Fehler."), "err");
+          zeigMsg("❌ " + (j.error || "Unbekannter Fehler."), "err");
           setBusy(false);
         }
       })
-      .catch(function (err) {
+      .catch(function(e) {
         clearTimeout(tid);
-        showMsg("❌ " + (err.name === "AbortError"
+        zeigMsg("❌ " + (e.name === "AbortError"
           ? "Zeitüberschreitung – bitte erneut versuchen."
-          : "Netzwerkfehler: " + err.message), "err");
+          : "Netzwerkfehler: " + e.message), "err");
         setBusy(false);
       });
   });
 
-})(); // IIFE – kein globaler Namespace-Müll
 </script>
 </body>
 </html>
