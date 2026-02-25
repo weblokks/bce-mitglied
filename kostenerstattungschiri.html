@@ -414,7 +414,16 @@ async function startAiAnalysis(base64, mimeType) {
       body: JSON.stringify({ action: "analyze", base64, mimeType }),
     });
     clearTimeout(tid);
-    const json = await resp.json();
+
+    // GAS gibt manchmal text/plain oder HTML zurück – robust parsen
+    const raw = await resp.text();
+    let json;
+    try { json = JSON.parse(raw); }
+    catch {
+      document.getElementById("aiStatus").textContent = "";
+      showAiWarning("⚠️ Serverantwort konnte nicht verarbeitet werden – bitte manuell ausfüllen. (Antwort: " + raw.substring(0, 120) + ")");
+      return;
+    }
 
     if (json.success && json.data) {
       aiData = json.data;
@@ -424,9 +433,9 @@ async function startAiAnalysis(base64, mimeType) {
       document.getElementById("aiStatus").textContent = "";
       showAiWarning("⚠️ " + (json.error || "Erkennung nicht möglich – bitte manuell ausfüllen."));
     }
-  } catch {
+  } catch (err) {
     document.getElementById("aiStatus").textContent = "";
-    showAiWarning("⚠️ KI-Analyse nicht verfügbar – bitte Felder manuell ausfüllen.");
+    showAiWarning("⚠️ KI-Analyse fehlgeschlagen: " + err.message + " – bitte manuell ausfüllen.");
   }
 }
 
