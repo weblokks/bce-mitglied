@@ -64,17 +64,11 @@
     #successScreen .ico { font-size: 3rem; margin-bottom: 1rem; }
     #successScreen h2 { font-size: 1.2rem; margin-bottom: .7rem; }
     #successScreen p  { font-size: .9rem; color: #444; line-height: 1.6; }
-    /* Debug-Banner */
-    #debugBanner { background: #1a6e38; color: #fff; text-align: center; font-size: .78rem; padding: .35rem .5rem; border-radius: 5px; margin-bottom: 1rem; letter-spacing: .02em; }
     @media (max-width: 520px) { .card { padding: 1.3rem 1rem; } .row { flex-direction: column; gap: 0; } }
   </style>
 </head>
 <body>
 <div class="card">
-
-  <!-- Versions-Banner: zeigt an welche Datei wirklich geladen wurde -->
-  <div id="debugBanner">⚙️ V05 – wird initialisiert …</div>
-
   <h1>Antrag Erstattung Fahrtkosten</h1>
   <p class="subtitle">BC Erfurt e.V.</p>
   <hr class="divider">
@@ -89,7 +83,7 @@
         </div>
         <div class="fg">
           <label for="zielort">Zielort <span class="req">*</span></label>
-          <input type="text" id="zielort" placeholder="z.B. Gera">
+          <input type="text" id="zielort" placeholder="z.B. Jena">
         </div>
       </div>
       <div class="fg">
@@ -178,14 +172,12 @@
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════
-   BCE Fahrtkosten V05
-   Script steht nach allen HTML-Tags → DOM sofort verfügbar
-   ═══════════════════════════════════════════════════════════ */
+/* BCE Fahrtkosten V06 – Weimar */
+try {
 
 var PROXY   = "https://script.google.com/macros/s/AKfycbzXYobUIQuU47SRntyeRXL32LBJW-DtZA4dsOeYLXOSfP6x6E5g2nm0REQhcRKy3zjM/exec";
 var RATE    = 0.15;
-var MAX_B   = 5 * 1024 * 1024;
+var MAX_B   = 5242880; /* 5 MB */
 var TIMEOUT = 90000;
 
 var uploads     = [];
@@ -193,80 +185,61 @@ var kmServer    = null;
 var kmWarnDone  = false;
 var kinhTouched = false;
 
-/* ── Alle Felder direkt holen ── */
-var fReiseDatum  = document.getElementById("reiseDatum");
-var fZielort     = document.getElementById("zielort");
-var fAnlass      = document.getElementById("anlass");
-var fMitreisende = document.getElementById("mitreisende");
-var fKilometer   = document.getElementById("kilometer");
-var fVorname     = document.getElementById("vorname");
-var fNachname    = document.getElementById("nachname");
-var fEmail       = document.getElementById("email");
-var fKontoinhaber= document.getElementById("kontoinhaber");
-var fIban        = document.getElementById("iban");
-var boxBetrag    = document.getElementById("betragBox");
-var hintKmCalc   = document.getElementById("kmCalcHint");
-var btnSubmit    = document.getElementById("submitBtn");
-var elMsg        = document.getElementById("msg");
-var elUpArea     = document.getElementById("uploadArea");
-var elFileList   = document.getElementById("fileList");
-var elFileInput  = document.getElementById("fileInput");
+function gi(id) { return document.getElementById(id); }
 
-/* Debug-Banner: zeigt dass Script korrekt geladen + DOM lesbar */
-document.getElementById("debugBanner").textContent =
-  "✅ V05 geladen – " + Object.keys({
-    reiseDatum: fReiseDatum, zielort: fZielort, kilometer: fKilometer,
-    submitBtn: btnSubmit, kontoinhaber: fKontoinhaber
-  }).filter(function(k) {
-    return ({reiseDatum:fReiseDatum,zielort:fZielort,kilometer:fKilometer,
-             submitBtn:btnSubmit,kontoinhaber:fKontoinhaber})[k] !== null;
-  }).length + "/5 Felder gefunden";
+var fReiseDatum   = gi("reiseDatum");
+var fZielort      = gi("zielort");
+var fAnlass       = gi("anlass");
+var fMitreisende  = gi("mitreisende");
+var fKilometer    = gi("kilometer");
+var fVorname      = gi("vorname");
+var fNachname     = gi("nachname");
+var fEmail        = gi("email");
+var fKontoinhaber = gi("kontoinhaber");
+var fIban         = gi("iban");
+var fCheckbox     = gi("bestaetigung");
+var boxBetrag     = gi("betragBox");
+var hintKm        = gi("kmCalcHint");
+var btnSubmit     = gi("submitBtn");
+var elMsg         = gi("msg");
+var elUpArea      = gi("uploadArea");
+var elFileList    = gi("fileList");
+var elFileInput   = gi("fileInput");
 
-/* ══════════════════════════════════════════════════════════
-   BETRAG
-   ══════════════════════════════════════════════════════════ */
+/* BETRAG */
 function berechneBetrag() {
   var km = parseFloat(fKilometer.value);
   boxBetrag.textContent = (km > 0)
-    ? (km * RATE).toLocaleString("de-DE", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €"
+    ? (km * RATE).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
     : "– €";
   kmWarnDone = false;
 }
 fKilometer.addEventListener("input",  berechneBetrag);
 fKilometer.addEventListener("change", berechneBetrag);
 
-/* ══════════════════════════════════════════════════════════
-   IBAN
-   ══════════════════════════════════════════════════════════ */
+/* IBAN */
 fIban.addEventListener("input", function() {
-  var v = fIban.value.replace(/\s/g,"").toUpperCase();
+  var v = fIban.value.replace(/\s/g, "").toUpperCase();
   var m = v.match(/.{1,4}/g);
   fIban.value = m ? m.join(" ") : v;
 });
 
-/* ══════════════════════════════════════════════════════════
-   KONTOINHABER AUTO-FILL
-   ══════════════════════════════════════════════════════════ */
+/* KONTOINHABER */
 fKontoinhaber.addEventListener("input", function() { kinhTouched = true; });
-
-function syncKontoinhaber() {
+function syncKinh() {
   if (kinhTouched) return;
-  var v = fVorname.value.trim();
-  var n = fNachname.value.trim();
-  var full = (v + " " + n).trim();
+  var full = (fVorname.value.trim() + " " + fNachname.value.trim()).trim();
   if (full) fKontoinhaber.value = full;
 }
-fVorname.addEventListener("blur",  syncKontoinhaber);
-fNachname.addEventListener("blur", syncKontoinhaber);
+fVorname.addEventListener("blur",  syncKinh);
+fNachname.addEventListener("blur", syncKinh);
 
-/* ══════════════════════════════════════════════════════════
-   ZIELORT → LUFTLINIE
-   ══════════════════════════════════════════════════════════ */
+/* ZIELORT → LUFTLINIE */
 fZielort.addEventListener("blur", function() {
   var z = fZielort.value.trim();
   if (!z) return;
-  hintKmCalc.textContent  = "📍 Berechne Luftlinie …";
-  hintKmCalc.style.display = "block";
+  hintKm.textContent   = "📍 Berechne Luftlinie …";
+  hintKm.style.display = "block";
   fetch(PROXY, {
     method: "POST",
     body:   JSON.stringify({ action: "checkKm", zielort: z, kmUser: parseFloat(fKilometer.value) || 0 })
@@ -275,21 +248,19 @@ fZielort.addEventListener("blur", function() {
   .then(function(j) {
     if (j.success && j.kmCalc) {
       kmServer = j.kmCalc;
-      hintKmCalc.textContent = "📍 Luftlinie Erfurt → " + z + ": ca. " + j.kmCalc + " km (H+R)";
+      hintKm.textContent = "📍 Luftlinie Erfurt → " + z + ": ca. " + j.kmCalc + " km (H+R)";
       if (!(parseFloat(fKilometer.value) > 0)) {
         fKilometer.value = j.kmCalc;
         berechneBetrag();
       }
     } else {
-      hintKmCalc.style.display = "none";
+      hintKm.style.display = "none";
     }
   })
-  .catch(function() { hintKmCalc.style.display = "none"; });
+  .catch(function() { hintKm.style.display = "none"; });
 });
 
-/* ══════════════════════════════════════════════════════════
-   UPLOAD
-   ══════════════════════════════════════════════════════════ */
+/* UPLOAD */
 elUpArea.addEventListener("dragover", function(e) {
   e.preventDefault();
   elUpArea.style.borderColor = "#111";
@@ -333,24 +304,19 @@ function renderFiles() {
   if (!uploads.length) { elFileList.innerHTML = ""; elUpArea.classList.remove("has-file"); return; }
   elUpArea.classList.add("has-file");
   elFileList.innerHTML = uploads.map(function(f, i) {
-    return '<div class="file-item">'
-      + '<span>📄</span>'
-      + '<span><strong>' + f.name + '</strong> <span class="file-sz">(' + Math.round(f.size/1024) + ' KB)</span></span>'
-      + '<button type="button" class="file-rm" data-idx="' + i + '">Entfernen</button>'
-      + '</div>';
+    return '<div class="file-item"><span>📄</span>'
+      + '<span><strong>' + f.name + '</strong> <span class="file-sz">(' + Math.round(f.size / 1024) + ' KB)</span></span>'
+      + '<button type="button" class="file-rm" data-i="' + i + '">Entfernen</button></div>';
   }).join("");
-  /* Event-Delegation statt onclick-Attribut */
   elFileList.querySelectorAll(".file-rm").forEach(function(btn) {
     btn.addEventListener("click", function() {
-      uploads.splice(parseInt(btn.getAttribute("data-idx"), 10), 1);
+      uploads.splice(parseInt(btn.getAttribute("data-i"), 10), 1);
       renderFiles();
     });
   });
 }
 
-/* ══════════════════════════════════════════════════════════
-   VALIDIERUNG
-   ══════════════════════════════════════════════════════════ */
+/* VALIDIERUNG */
 function validate() {
   var felder = [fReiseDatum, fZielort, fAnlass, fMitreisende, fKilometer,
                 fVorname, fNachname, fEmail, fKontoinhaber, fIban];
@@ -359,11 +325,9 @@ function validate() {
     if (!el.value.trim()) { el.classList.add("err"); ok = false; }
     else                   { el.classList.remove("err"); }
   });
-
-  /* Datum */
   if (fReiseDatum.value) {
     var dat   = new Date(fReiseDatum.value);
-    var heute = new Date(); heute.setHours(0,0,0,0);
+    var heute = new Date(); heute.setHours(0, 0, 0, 0);
     var diff  = Math.floor((heute - dat) / 86400000);
     if (dat.getFullYear() !== heute.getFullYear()) {
       fReiseDatum.classList.add("err");
@@ -375,21 +339,12 @@ function validate() {
       ok = false;
     }
   }
-
-  /* km */
   if (!(parseFloat(fKilometer.value) > 0)) { fKilometer.classList.add("err"); ok = false; }
-
-  /* Checkbox */
-  var cb = document.getElementById("bestaetigung");
-  if (!cb.checked) { cb.style.outline = "2px solid #c00"; ok = false; }
-  else              { cb.style.outline = ""; }
-
+  if (!fCheckbox.checked) { fCheckbox.style.outline = "2px solid #c00"; ok = false; }
+  else                     { fCheckbox.style.outline = ""; }
   return ok;
 }
 
-/* ══════════════════════════════════════════════════════════
-   HILFSFUNKTIONEN
-   ══════════════════════════════════════════════════════════ */
 function zeigeMsg(txt, cls) {
   elMsg.textContent   = txt;
   elMsg.className     = cls;
@@ -397,57 +352,43 @@ function zeigeMsg(txt, cls) {
   elMsg.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 function setBusy(b) {
-  btnSubmit.disabled                              = b;
-  document.getElementById("btnTxt").textContent  = b ? "Wird gesendet …" : "Antrag absenden";
-  document.getElementById("spin").style.display  = b ? "inline-block" : "none";
+  btnSubmit.disabled                      = b;
+  gi("btnTxt").textContent                = b ? "Wird gesendet …" : "Antrag absenden";
+  gi("spin").style.display                = b ? "inline-block" : "none";
 }
 
-/* ══════════════════════════════════════════════════════════
-   SUBMIT
-   ══════════════════════════════════════════════════════════ */
+/* SUBMIT */
 btnSubmit.addEventListener("click", function() {
   elMsg.style.display = "none";
-
-  if (!validate()) {
-    zeigeMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err");
-    return;
-  }
+  if (!validate()) { zeigeMsg("Bitte fülle alle Pflichtfelder korrekt aus.", "err"); return; }
 
   var km = parseFloat(fKilometer.value);
-
-  /* KM-Abweichungs-Dialog */
   if (kmServer !== null && !kmWarnDone) {
     var abw = (km - kmServer) / kmServer;
     if (abw > 0.20) {
       kmWarnDone = true;
       if (!confirm(
-        "⚠️ Hinweis zur Kilometerangabe\n\n"
-        + "Angegeben: " + km + " km\n"
+        "⚠️ Kilometerangabe\n\nAngegeben: " + km + " km\n"
         + "Luftlinie Erfurt → " + fZielort.value.trim() + " (H+R): ca. " + kmServer + " km\n"
-        + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: 20%)\n\n"
-        + "Trotzdem absenden?\n(Luftlinie wird in der Beschreibung vermerkt.)"
+        + "Abweichung: " + Math.round(abw * 100) + "% (Schwelle: 20%)\n\nTrotzdem absenden?"
       )) return;
     }
   }
 
-  var betrag = Math.round(km * RATE * 100) / 100;
   setBusy(true);
-
   var payload = {
     reiseDatum:   fReiseDatum.value,
     zielort:      fZielort.value.trim(),
     anlass:       fAnlass.value.trim(),
     mitreisende:  parseInt(fMitreisende.value, 10),
     kilometer:    km,
-    betrag:       betrag,
+    betrag:       Math.round(km * RATE * 100) / 100,
     vorname:      fVorname.value.trim(),
     nachname:     fNachname.value.trim(),
     email:        fEmail.value.trim(),
     kontoinhaber: fKontoinhaber.value.trim(),
-    iban:         fIban.value.replace(/\s/g,"").toUpperCase(),
-    belege:       uploads.map(function(f) {
-                    return { fileName: f.name, mimeType: f.mimeType, base64: f.base64 };
-                  })
+    iban:         fIban.value.replace(/\s/g, "").toUpperCase(),
+    belege:       uploads.map(function(f) { return { fileName: f.name, mimeType: f.mimeType, base64: f.base64 }; })
   };
 
   var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -456,12 +397,12 @@ btnSubmit.addEventListener("click", function() {
   if (ctrl) opts.signal = ctrl.signal;
 
   fetch(PROXY, opts)
-    .then(function(r)  { clearTimeout(tid); return r.json(); })
-    .then(function(j)  {
+    .then(function(r) { clearTimeout(tid); return r.json(); })
+    .then(function(j) {
       if (j.success) {
-        document.getElementById("formWrap").style.display      = "none";
-        document.getElementById("successScreen").style.display = "block";
-        document.getElementById("okName").textContent          = "Danke, " + payload.vorname + "!";
+        gi("formWrap").style.display      = "none";
+        gi("successScreen").style.display = "block";
+        gi("okName").textContent          = "Danke, " + payload.vorname + "!";
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         zeigeMsg("❌ " + (j.error || "Unbekannter Fehler."), "err");
@@ -470,13 +411,17 @@ btnSubmit.addEventListener("click", function() {
     })
     .catch(function(e) {
       clearTimeout(tid);
-      zeigeMsg("❌ " + (e.name === "AbortError"
-        ? "Zeitüberschreitung – bitte erneut versuchen."
-        : "Netzwerkfehler: " + e.message), "err");
+      zeigeMsg("❌ " + (e.name === "AbortError" ? "Zeitüberschreitung." : "Netzwerkfehler: " + e.message), "err");
       setBusy(false);
     });
 });
 
+} catch(e) {
+  /* Zeigt den genauen Fehler direkt im Formular an */
+  document.getElementById("msg").textContent   = "⚠️ Script-Fehler: " + e.message + " (Zeile " + e.lineNumber + ")";
+  document.getElementById("msg").className     = "err";
+  document.getElementById("msg").style.display = "block";
+}
 </script>
 </body>
 </html>
