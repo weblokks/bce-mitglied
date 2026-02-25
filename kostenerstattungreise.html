@@ -131,11 +131,11 @@
           <div class="km-wrap">
             <input type="number" id="kilometer" name="kilometer" required min="1" step="1"
                    placeholder="akt. Vergütung 0,15 € pro km"
-                   style="padding-right:2.4rem"
-                   oninput="updateBetrag()">
+                   style="padding-right:2.4rem">
             <span class="km-suffix">km</span>
           </div>
           <div class="km-hint">Hin- und Rückfahrt zusammen · Vergütung: 0,15 € / km</div>
+          <div class="km-hint" id="kmHint" style="display:none;color:#1558b0"></div>
       </div>
 
       <div class="row" style="display:none">
@@ -219,23 +219,55 @@
 
 <script>
   const PROXY_URL  = "https://script.google.com/macros/s/AKfycbzNAdktJbzoDugs1Kn3UV0mQgq10bRFW-a_u2tq45EAgzrPgd-cAem_y8aWOWfhsIlnWg/exec";
-  const RATE       = 0.15;          // € pro km
+  const RATE       = 0.15;
   const MAX_BYTES  = 5 * 1024 * 1024;
   const TIMEOUT_MS = 90000;
 
-  let fileStore = [];  // { name, base64, mimeType, size }
+  let fileStore    = [];
+  let kmCalcServer = null;   // vom Backend berechnete Luftlinie
+  let kmWarned     = false;  // hat der Nutzer den Hinweis schon bestätigt?
 
   // ── Betrag automatisch berechnen ─────────────────────────
   function updateBetrag() {
-    const km  = parseFloat(document.getElementById("kilometer").value);
-    const el  = document.getElementById("betragDisplay");
+    const km = parseFloat(document.getElementById("kilometer").value);
+    const el = document.getElementById("betragDisplay");
     if (!isNaN(km) && km > 0) {
-      const total = (km * RATE).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      el.textContent = total + " €";
+      el.textContent = (km * RATE).toLocaleString("de-DE", { minimumFractionDigits:2, maximumFractionDigits:2 }) + " €";
     } else {
       el.textContent = "– €";
     }
+    kmWarned = false;
   }
+
+  // ── KM-Prüfung via Backend (beim Verlassen des Zielort-Feldes) ────
+  document.addEventListener("DOMContentLoaded", () => {
+    // Zielort blur → km vorbelegen + Hinweis anzeigen
+    document.getElementById("zielort").addEventListener("blur", async function() {
+      const zielort = this.value.trim();
+      if (!zielort) return;
+      try {
+        const res  = await fetch(PROXY_URL, { method:"POST",
+          body: JSON.stringify({ action:"checkKm", zielort, kmUser: parseFloat(document.getElementById("kilometer").value)||0 }) });
+        const json = await res.json();
+        if (json.success && json.kmCalc) {
+          kmCalcServer = json.kmCalc;
+          document.getElementById("kmHint").textContent = "📍 Luftlinie Erfurt → " + zielort + ": ca. " + json.kmCalc + " km (H+R)";
+          document.getElementById("kmHint").style.display = "block";
+          // km-Feld vorbelegen wenn noch leer
+          const kmEl = document.getElementById("kilometer");
+          if (!kmEl.value) {
+            kmEl.value = json.kmCalc;
+            updateBetrag();   // ← Betrag sofort aktualisieren
+          }
+        }
+      } catch(e) { /* still bei Netzfehler */ }
+    });
+
+    // km-Feld: Betrag bei jedem Ändern UND beim Verlassen aktualisieren
+    const kmEl = document.getElementById("kilometer");
+    kmEl.addEventListener("input",  updateBetrag);
+    kmEl.addEventListener("change", updateBetrag);  // greift auch bei programmatischer Änderung via Stepper/Paste
+  });
 
   // ── IBAN formatieren ──────────────────────────────────────
   function formatIban(el) {
@@ -372,6 +404,22 @@
 
     const km     = parseFloat(document.getElementById("kilometer").value);
     const betrag = parseFloat((km * RATE).toFixed(2));
+
+    // KM-Abweichungs-Hinweis (nur einmal zeigen)
+    if (kmCalcServer !== null && !kmWarned) {
+      const abw = (km - kmCalcServer) / kmCalcServer;
+      if (abw > 0.20) {
+        kmWarned = true;
+        const bestätigt = confirm(
+          "⚠️ Hinweis: Du hast " + km + " km angegeben.\n"
+          + "Die berechnete Luftlinie (Hin+Rück) beträgt ca. " + kmCalcServer + " km.\n\n"
+          + "Die Abweichung beträgt " + Math.round(abw*100) + " %. "
+          + "Möchtest du den Antrag trotzdem absenden?\n\n"
+          + "(Die errechneten km werden in der Beschreibung vermerkt.)"
+        );
+        if (!bestätigt) return;
+      }
+    }
 
     const btn = document.getElementById("submitBtn");
     btn.disabled = true;
