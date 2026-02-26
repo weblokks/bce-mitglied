@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fahrtkosten-Erstattung</title>
+  <title>BCE - Fahrtkosten-Erstattung</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f4f4f4; color: #111; min-height: 100vh; padding: 1.5rem 1rem 3rem; }
@@ -30,6 +30,8 @@
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type="number"] { -moz-appearance: textfield; }
+    /* FIX: Datumsfeld iPad – linksbündig, begrenzte Breite */
+    input[type="date"] { text-align: left; max-width: 180px; -webkit-appearance: none; }
     .km-wrap { position: relative; }
     .km-suffix { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); font-size: .88rem; color: #888; pointer-events: none; }
     .hint-s { font-size: .75rem; color: #888; margin-top: .3rem; }
@@ -186,8 +188,9 @@ var kmServerTyp = "Referenz";
 var kmThreshold = 10;
 var kmWarnDone  = false;
 var kinhTouched = false;
-var kmTimer     = null;
-var kmPending   = false; // verhindert Doppel-Requests
+var kmPending   = false;
+// FIX: Track ob letzter Zielort sich geaendert hat
+var lastZielort = "";
 
 function gi(id) { return document.getElementById(id); }
 
@@ -244,6 +247,8 @@ fKontoinhaber.addEventListener("input", function() {
 /* ---------- KM VOM SERVER ---------- */
 function holeKm(z) {
   if (kmPending) return;
+  // FIX: Nicht erneut abfragen wenn gleicher Ort
+  if (z === lastZielort && kmServer !== null) return;
   kmPending = true;
   hintKm.textContent   = "\uD83D\uDCCD Berechne Entfernung \u2026";
   hintKm.style.display = "block";
@@ -263,14 +268,13 @@ function holeKm(z) {
       kmServer    = j.kmCalc;
       kmServerTyp = j.kmTyp  || "Referenz";
       kmThreshold = j.schwellePct || 10;
+      lastZielort = z;
       hintKm.textContent   = "\uD83D\uDCCD " + kmServerTyp + " Erfurt \u2192 " + z
                              + ": ca. " + j.kmCalc + " km (Hin + R\u00fcck)";
       hintKm.style.display = "block";
-      // KM nur vorausfüllen wenn Feld noch leer
-      if (!(parseFloat(fKilometer.value) > 0)) {
-        fKilometer.value = j.kmCalc;
-        berechneBetrag();
-      }
+      // FIX: KM-Feld IMMER mit berechneter Strecke aktualisieren
+      fKilometer.value = j.kmCalc;
+      berechneBetrag();
     } else {
       hintKm.style.display = "none";
     }
@@ -281,16 +285,16 @@ function holeKm(z) {
   });
 }
 
+// FIX: Nur bei Blur auslösen, kein Input-Timer mehr
 fZielort.addEventListener("blur", function() {
   var z = fZielort.value.trim();
-  if (z) { clearTimeout(kmTimer); holeKm(z); }
+  if (z && z !== lastZielort) { holeKm(z); }
 });
+// FIX: Bei Eingabe nur Reset, keine automatische Abfrage
 fZielort.addEventListener("input", function() {
-  clearTimeout(kmTimer);
-  kmServer = null; // zurücksetzen bei neuer Eingabe
+  kmServer = null;
+  lastZielort = "";
   hintKm.style.display = "none";
-  var z = fZielort.value.trim();
-  if (z.length >= 3) kmTimer = setTimeout(function() { holeKm(z); }, 900);
 });
 
 /* ---------- UPLOAD ---------- */
@@ -306,7 +310,7 @@ function leseFiles(flist) {
       zeigeMsg(f.name + " – nur Bilder oder PDF erlaubt.", "err"); return;
     }
     for (var i = 0; i < uploads.length; i++) {
-      if (uploads[i].name === f.name && uploads[i].size === f.size) return; // Duplikat
+      if (uploads[i].name === f.name && uploads[i].size === f.size) return;
     }
     var rd = new FileReader();
     rd.onload = function(ev) {
@@ -346,7 +350,6 @@ function validate() {
     else                   { el.classList.remove("err"); }
   });
 
-  // Datum-Prüfung (nur wenn Feld gefüllt)
   if (fReiseDatum.value) {
     var dat   = new Date(fReiseDatum.value);
     var heute = new Date(); heute.setHours(0, 0, 0, 0);
@@ -394,7 +397,6 @@ btnSubmit.addEventListener("click", function() {
 
   var km = parseFloat(fKilometer.value);
 
-  // KM-Abweichungswarnung
   if (kmServer !== null && !kmWarnDone) {
     var abw = (km - kmServer) / kmServer;
     if (abw > kmThreshold / 100) {
