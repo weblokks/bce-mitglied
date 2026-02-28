@@ -66,9 +66,15 @@
   <div id="formWrap">
     <fieldset>
       <legend>Reisedaten</legend>
-      <div class="fg">
-        <label for="reiseDatum">Reisedatum <span class="req">*</span></label>
-        <input type="date" id="reiseDatum">
+      <div class="row">
+        <div class="fg">
+          <label for="reiseDatum">Reisedatum <span class="req">*</span></label>
+          <input type="date" id="reiseDatum">
+        </div>
+        <div class="fg">
+          <label for="mitreisende">Anzahl Mitreisende <span class="req">*</span></label>
+          <input type="number" id="mitreisende" min="1" max="20" step="1" placeholder="z.B. 2">
+        </div>
       </div>
       <div class="row">
         <div class="fg">
@@ -83,10 +89,6 @@
       <div class="fg">
         <label for="anlass">Anlass der Reise / Spiel <span class="req">*</span></label>
         <textarea id="anlass" placeholder="z.B. Spielnr. 12345 · BC Erfurt vs. SV Musterstadt"></textarea>
-      </div>
-      <div class="fg">
-        <label for="mitreisende">Anzahl Mitreisende <span class="req">*</span></label>
-        <input type="number" id="mitreisende" min="1" max="20" step="1" placeholder="z.B. 2">
       </div>
       <div class="fg">
         <label for="kilometer">Gefahrene Kilometer (Hin + Rück) <span class="req">*</span></label>
@@ -316,7 +318,8 @@ function validate() {
   });
 
   if (fReiseDatum.value) {
-    var dat   = new Date(fReiseDatum.value);
+    var parts = fReiseDatum.value.split("-");
+    var dat   = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
     var heute = new Date(); heute.setHours(0, 0, 0, 0);
     var diff  = Math.floor((heute - dat) / 86400000);
     if (dat.getFullYear() !== heute.getFullYear()) {
