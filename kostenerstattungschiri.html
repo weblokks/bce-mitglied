@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schiri-Kostenerstattung – BC Erfurt</title>
+  <title>BCE - Schiedsrichterkosten-Erstattung</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f4f4f4; color: #111; min-height: 100vh; padding: 1.5rem 1rem 3rem; }
@@ -36,7 +36,8 @@
     .amount-wrap input { padding-left: 2.2rem; }
     .amount-prefix { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); font-size: .92rem; color: #555; pointer-events: none; }
 
-    /* Upload */
+    .hp-wrap { position: absolute; left: -9999px; top: -9999px; opacity: 0; height: 0; overflow: hidden; }
+
     .upload-area {
       border: 2px dashed #bbb; border-radius: 6px; padding: 1.4rem 1rem;
       text-align: center; cursor: pointer;
@@ -59,7 +60,6 @@
     #previewWrap { display: none; margin-top: .7rem; text-align: center; }
     #previewWrap img { max-width: 100%; max-height: 180px; border-radius: 5px; border: 1px solid #ddd; }
 
-    /* KI-Box */
     #aiBox {
       display: none; margin-top: .9rem;
       border: 1.5px solid #d0e8ff; border-radius: 7px;
@@ -87,7 +87,6 @@
     }
     .ai-hint { font-size: .75rem; color: #1a6e38; margin-top: .25rem; display: none; }
 
-    /* Consent */
     .consent-block {
       background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px;
       padding: .9rem 1rem; margin-bottom: 1.2rem; font-size: .85rem; line-height: 1.6; color: #333;
@@ -134,6 +133,12 @@
 
   <form id="mainForm" novalidate>
 
+    <!-- Honeypot -->
+    <div class="hp-wrap" aria-hidden="true">
+      <label for="faxNummer">Faxnummer</label>
+      <input type="text" id="faxNummer" name="faxNummer" tabindex="-1" autocomplete="off">
+    </div>
+
     <!-- Beleg-Upload -->
     <fieldset>
       <legend>Beleg hochladen</legend>
@@ -177,18 +182,18 @@
       </div>
       <div class="fg">
         <label for="spielNummer">Spielnummer <span class="req">*</span></label>
-        <input type="text" id="spielNummer" name="spielNummer" required placeholder="z.B. 12345">
+        <input type="text" id="spielNummer" name="spielNummer" required maxlength="20" placeholder="z.B. 12345">
         <div class="ai-hint" id="spielNummerHint">✨ KI-Erkennung – bitte prüfen</div>
       </div>
       <div class="row">
         <div class="fg">
           <label for="heimTeam">Heim-Team <span class="req">*</span></label>
-          <input type="text" id="heimTeam" name="heimTeam" required placeholder="Spiel A · Spielklasse">
+          <input type="text" id="heimTeam" name="heimTeam" required maxlength="50" placeholder="Spiel A · Spielklasse">
           <div class="ai-hint" id="heimTeamHint">✨ KI-Erkennung – bitte prüfen</div>
         </div>
         <div class="fg">
           <label for="auswaertsTeam">Auswärts-Team <span class="req">*</span></label>
-          <input type="text" id="auswaertsTeam" name="auswaertsTeam" required placeholder="Spiel B">
+          <input type="text" id="auswaertsTeam" name="auswaertsTeam" required maxlength="50" placeholder="Spiel B">
           <div class="ai-hint" id="auswaertsTeamHint">✨ KI-Erkennung – bitte prüfen</div>
         </div>
       </div>
@@ -263,7 +268,10 @@ const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_B64_BYTES  = 3.5 * 1024 * 1024;
 const A4_W = 2480, A4_H = 3508, QUALITY = 0.92;
 
-// Mapping: AI-Datenschlüssel → Formularfeld-ID
+// Bot-Schutz – Salt muss mit Server übereinstimmen!
+const TOKEN_SALT   = 0x5A3CF7;
+const PAGE_LOAD_TS = Math.floor(Date.now() / 1000);
+
 const AI_FIELD_MAP = {
   betrag:        "betrag",
   datum:         "spielDatum",
@@ -278,54 +286,43 @@ let processedFile     = null;
 let aiData            = null;
 let kontoinhaberDirty = false;
 
+function generateToken(ts) { return btoa(String(ts * 7 + TOKEN_SALT)); }
+
 // ── DOM-Init ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // Kontoinhaber: manuelle Änderung merken
-  document.getElementById("kontoinhaber").addEventListener("input", () => {
-    kontoinhaberDirty = true;
-  });
-
-  // Auto-fill Kontoinhaber aus Vor-/Nachname
-  ["vorname", "nachname"].forEach(id => {
+  document.getElementById("kontoinhaber").addEventListener("input", () => { kontoinhaberDirty = true; });
+  ["vorname","nachname"].forEach(id => {
     document.getElementById(id).addEventListener("blur", autoFillKontoinhaber);
   });
-
-  // KI-Hints bei manuellem Bearbeiten ausblenden
   Object.values(AI_FIELD_MAP).forEach(fid => {
     const el = document.getElementById(fid);
     if (!el) return;
     el.addEventListener("input", () => {
       el.classList.remove("ai-filled");
-      const hint = document.getElementById(fid + "Hint");
-      if (hint) hint.style.display = "none";
+      const h = document.getElementById(fid + "Hint");
+      if (h) h.style.display = "none";
     });
   });
-
-  // Datum: max. heute (kein Zukunftsdatum)
   document.getElementById("spielDatum").max = todayISO();
 });
 
-// ── Drag & Drop ───────────────────────────────────────────────
+// ── Drag & Drop ──────────────────────────────────────────────
 const uploadArea = document.getElementById("uploadArea");
 uploadArea.addEventListener("dragover",  e => { e.preventDefault(); uploadArea.classList.add("drag"); });
 uploadArea.addEventListener("dragleave", ()  => uploadArea.classList.remove("drag"));
 uploadArea.addEventListener("drop", e => {
-  e.preventDefault();
-  uploadArea.classList.remove("drag");
-  const f = e.dataTransfer.files[0];
-  if (f) applyFile(f);
+  e.preventDefault(); uploadArea.classList.remove("drag");
+  if (e.dataTransfer.files[0]) applyFile(e.dataTransfer.files[0]);
 });
 
 function handleFile(inp) {
   if (inp.files[0]) applyFile(inp.files[0]);
-  inp.value = ""; // Reset damit dieselbe Datei nochmal gewählt werden kann
+  inp.value = "";
 }
 
-// ── Datei verarbeiten ─────────────────────────────────────────
+// ── Datei verarbeiten ────────────────────────────────────────
 async function applyFile(file) {
-  // Zurücksetzen
-  processedFile = null;
-  aiData        = null;
+  processedFile = null; aiData = null;
   resetAiState();
   setIds(["fileInfo","previewWrap","compressInfo","aiBox"], "none");
   uploadArea.classList.remove("has-file", "upload-err");
@@ -336,50 +333,46 @@ async function applyFile(file) {
   if (!isPdf && !isImg) { showMsg("Nur Bilder (JPG, PNG, …) und PDF sind erlaubt.", "err"); return; }
 
   let base64, mimeType = file.type;
-
   if (isImg) {
     document.getElementById("compressInfo").style.display = "block";
-    try   { base64 = await compressImage(file); }
-    catch (err) { showMsg("Bild konnte nicht verarbeitet werden: " + err.message, "err"); return; }
+    try { base64 = await compressImage(file); }
+    catch(err) { showMsg("Bild konnte nicht verarbeitet werden: " + err.message, "err"); return; }
     finally { document.getElementById("compressInfo").style.display = "none"; }
   } else {
     base64 = await readAsBase64(file);
   }
 
   if (base64.length * 0.75 > MAX_B64_BYTES) {
-    showMsg("Datei nach Komprimierung noch zu groß. Bitte eine kleinere Datei verwenden.", "err");
-    return;
+    showMsg("Datei nach Komprimierung noch zu groß. Bitte eine kleinere Datei verwenden.", "err"); return;
   }
 
-  processedFile = { name: file.name, base64, mimeType, origSize: file.size, compSize: Math.round(base64.length * 0.75) };
+  processedFile = { name:file.name, base64, mimeType, origSize:file.size, compSize:Math.round(base64.length*0.75) };
   showFileInfo(processedFile);
   if (isImg) showPreview("data:" + mimeType + ";base64," + base64);
   startAiAnalysis(base64, mimeType);
 }
 
-// ── Bildkomprimierung auf DIN A4 ──────────────────────────────
 function compressImage(file) {
   return new Promise((res, rej) => {
     const reader = new FileReader();
     reader.onerror = () => rej(new Error("Datei konnte nicht gelesen werden."));
-    reader.onload  = evt => {
+    reader.onload = evt => {
       const img = new Image();
       img.onerror = () => rej(new Error("Bild konnte nicht geladen werden."));
-      img.onload  = () => {
+      img.onload = () => {
         let w = img.width, h = img.height;
         const ratio = w / h;
         if (w > A4_W || h > A4_H) {
           if (ratio > A4_W / A4_H) { w = A4_W; h = Math.round(A4_W / ratio); }
-          else                      { h = A4_H; w = Math.round(A4_H * ratio); }
+          else { h = A4_H; w = Math.round(A4_H * ratio); }
         }
-        const canvas = document.createElement("canvas");
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, w, h);
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0,0,w,h);
         ctx.drawImage(img, 0, 0, w, h);
-        const mime = (file.type === "image/png") ? "image/jpeg" : file.type;
-        const url  = canvas.toDataURL(mime, QUALITY);
+        const mime = file.type === "image/png" ? "image/jpeg" : file.type;
+        const url  = c.toDataURL(mime, QUALITY);
         if (url.length * 0.75 > MAX_B64_BYTES) return rej(new Error("Bild ist nach Komprimierung noch zu groß."));
         res(url.split(",")[1]);
       };
@@ -398,7 +391,7 @@ function readAsBase64(file) {
   });
 }
 
-// ── KI-Analyse ────────────────────────────────────────────────
+// ── KI-Analyse ───────────────────────────────────────────────
 async function startAiAnalysis(base64, mimeType) {
   const aiBox = document.getElementById("aiBox");
   aiBox.style.display = "block";
@@ -414,17 +407,14 @@ async function startAiAnalysis(base64, mimeType) {
       body: JSON.stringify({ action: "analyze", base64, mimeType }),
     });
     clearTimeout(tid);
-
-    // GAS gibt manchmal text/plain oder HTML zurück – robust parsen
     const raw = await resp.text();
     let json;
     try { json = JSON.parse(raw); }
     catch {
       document.getElementById("aiStatus").textContent = "";
-      showAiWarning("⚠️ Serverantwort konnte nicht verarbeitet werden – bitte manuell ausfüllen. (Antwort: " + raw.substring(0, 120) + ")");
+      showAiWarning("⚠️ Serverantwort konnte nicht verarbeitet werden – bitte manuell ausfüllen.");
       return;
     }
-
     if (json.success && json.data) {
       aiData = json.data;
       document.getElementById("aiStatus").textContent = "✅ Erkennung abgeschlossen";
@@ -433,7 +423,7 @@ async function startAiAnalysis(base64, mimeType) {
       document.getElementById("aiStatus").textContent = "";
       showAiWarning("⚠️ " + (json.error || "Erkennung nicht möglich – bitte manuell ausfüllen."));
     }
-  } catch (err) {
+  } catch(err) {
     document.getElementById("aiStatus").textContent = "";
     showAiWarning("⚠️ KI-Analyse fehlgeschlagen: " + err.message + " – bitte manuell ausfüllen.");
   }
@@ -441,27 +431,25 @@ async function startAiAnalysis(base64, mimeType) {
 
 function showAiWarning(msg) {
   const w = document.getElementById("aiWarning");
-  w.style.display = "block";
-  w.textContent   = msg;
+  w.style.display = "block"; w.textContent = msg;
 }
 
 function renderAiResult(data) {
   const el = document.getElementById("aiResult");
   el.style.display = "block";
-
-  const fmtEur  = v => parseFloat(v).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmtDate = v => { const [y,m,d] = v.split("-"); return d+"."+m+"."+y; };
+  const fmtEur  = v => parseFloat(v).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtDate = v => { const [y,m,d]=v.split("-"); return d+"."+m+"."+y; };
 
   const rows = [];
-  if (data.heimTeam)      rows.push(["Heim-Team",     data.heimTeam + (data.spielKlasse ? " · " + data.spielKlasse : ""), "heimTeam"]);
-  if (data.auswaertsTeam) rows.push(["Auswärts-Team", data.auswaertsTeam,             "auswaertsTeam"]);
-  if (data.spielNummer)   rows.push(["Spielnummer",   data.spielNummer,               "spielNummer"]);
-  if (data.betrag)        rows.push(["Betrag",        fmtEur(data.betrag) + " €",     "betrag"]);
-  if (data.datum)         rows.push(["Spieldatum",    fmtDate(data.datum),            "datum"]);
-  if (data.vorname)       rows.push(["Vorname",       data.vorname,                   "vorname"]);
-  if (data.nachname)      rows.push(["Nachname",      data.nachname,                  "nachname"]);
+  if (data.heimTeam)      rows.push(["Heim-Team",     data.heimTeam + (data.spielKlasse && !data.heimTeam.includes(data.spielKlasse) ? " · " + data.spielKlasse : ""), "heimTeam"]);
+  if (data.auswaertsTeam) rows.push(["Auswärts-Team", data.auswaertsTeam,  "auswaertsTeam"]);
+  if (data.spielNummer)   rows.push(["Spielnummer",   data.spielNummer,    "spielNummer"]);
+  if (data.betrag)        rows.push(["Betrag",        fmtEur(data.betrag)+" €", "betrag"]);
+  if (data.datum)         rows.push(["Spieldatum",    fmtDate(data.datum), "datum"]);
+  if (data.vorname)       rows.push(["Vorname",       data.vorname,        "vorname"]);
+  if (data.nachname)      rows.push(["Nachname",      data.nachname,       "nachname"]);
 
-  let html = rows.map(([lbl, val, key]) =>
+  let html = rows.map(([lbl,val,key]) =>
     `<div class="ai-field-row">
       <span class="ai-field-label">${escHtml(lbl)}:</span>
       <span class="ai-field-value">${escHtml(val)}</span>
@@ -469,31 +457,31 @@ function renderAiResult(data) {
     </div>`
   ).join("");
 
-  if (rows.length > 1) {
+  if (rows.length > 1)
     html += `<div style="margin-top:.7rem">
       <button type="button" class="ai-apply-btn" style="font-weight:700;font-size:.85rem"
-              onclick="applyAllAiFields()">↑ Alle übernehmen</button>
-    </div>`;
-  }
+              onclick="applyAllAiFields()">↑ Alle übernehmen</button></div>`;
   el.innerHTML = html;
 }
 
 function applyAiField(key) {
   if (!aiData) return;
-  const fid = (key === "datum") ? "spielDatum" : key;
+  const fid = key === "datum" ? "spielDatum" : key;
   const el  = document.getElementById(fid);
   if (!el) return;
 
-  if      (key === "betrag")   el.value = parseFloat(aiData.betrag).toFixed(2);
-  else if (key === "datum")    el.value = aiData.datum; // ISO yyyy-mm-dd
-  else if (key === "heimTeam") el.value = aiData.heimTeam + (aiData.spielKlasse ? " · " + aiData.spielKlasse : "");
-  else                         el.value = aiData[key] || "";
+  if (key === "betrag")        el.value = parseFloat(aiData.betrag).toFixed(2);
+  else if (key === "datum")    el.value = aiData.datum;
+  else if (key === "heimTeam") {
+    let v = aiData.heimTeam || "";
+    if (aiData.spielKlasse && !v.includes(aiData.spielKlasse)) v += " · " + aiData.spielKlasse;
+    el.value = v;
+  }
+  else el.value = aiData[key] || "";
 
-  el.classList.remove("err");
-  el.classList.add("ai-filled");
-  const hint = document.getElementById(fid + "Hint");
-  if (hint) hint.style.display = "block";
-
+  el.classList.remove("err"); el.classList.add("ai-filled");
+  const h = document.getElementById(fid + "Hint");
+  if (h) h.style.display = "block";
   if (key === "vorname" || key === "nachname") autoFillKontoinhaber();
 }
 
@@ -505,19 +493,17 @@ function applyAllAiFields() {
 function resetAiState() {
   aiData = null;
   Object.values(AI_FIELD_MAP).forEach(fid => {
-    const hint = document.getElementById(fid + "Hint");
-    if (hint) hint.style.display = "none";
-    const el = document.getElementById(fid);
-    if (el) el.classList.remove("ai-filled");
+    const h = document.getElementById(fid + "Hint"); if (h) h.style.display = "none";
+    const e = document.getElementById(fid); if (e) e.classList.remove("ai-filled");
   });
 }
 
-// ── Datei-Info & Vorschau ─────────────────────────────────────
+// ── Datei-Info & Vorschau ────────────────────────────────────
 function showFileInfo(pf) {
   uploadArea.classList.add("has-file");
-  const kb  = (pf.origSize / 1024).toFixed(0);
-  const ckb = (pf.compSize  / 1024).toFixed(0);
-  const note = (pf.compSize < pf.origSize)
+  const kb = (pf.origSize/1024).toFixed(0);
+  const ckb = (pf.compSize/1024).toFixed(0);
+  const note = pf.compSize < pf.origSize
     ? ` <span style="color:#888;font-weight:400">(komprimiert: ${ckb} KB)</span>` : "";
   const el = document.getElementById("fileInfo");
   el.style.display = "block";
@@ -526,7 +512,7 @@ function showFileInfo(pf) {
 }
 
 function showPreview(src) {
-  document.getElementById("previewImg").src   = src;
+  document.getElementById("previewImg").src = src;
   document.getElementById("previewWrap").style.display = "block";
 }
 
@@ -540,153 +526,89 @@ function removeFile() {
   resetAiState();
 }
 
-// ── Hilfsfunktionen ───────────────────────────────────────────
-function setIds(ids, display) {
-  ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = display; });
-}
-
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-}
-
-function todayISO() {
-  const d = new Date();
-  return d.getFullYear() + "-"
-    + String(d.getMonth()+1).padStart(2,"0") + "-"
-    + String(d.getDate()).padStart(2,"0");
-}
-
-// Tage zwischen zwei ISO-Datum-Strings (lokal)
-function daysBetween(isoA, isoB) {
-  const [yA,mA,dA] = isoA.split("-").map(Number);
-  const [yB,mB,dB] = isoB.split("-").map(Number);
-  const a = new Date(yA, mA-1, dA);
-  const b = new Date(yB, mB-1, dB);
-  return Math.round((b - a) / 86400000);
-}
-
-function formatIban(el) {
-  const v  = el.value.replace(/\s/g,"").toUpperCase();
-  el.value = v.match(/.{1,4}/g)?.join(" ") || v;
-}
+// ── Hilfsfunktionen ──────────────────────────────────────────
+function setIds(ids, d) { ids.forEach(id => { const e = document.getElementById(id); if(e) e.style.display=d; }); }
+function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+function todayISO() { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function daysBetween(a,b) { const [yA,mA,dA]=a.split("-").map(Number); const [yB,mB,dB]=b.split("-").map(Number); return Math.round((new Date(yB,mB-1,dB)-new Date(yA,mA-1,dA))/86400000); }
+function formatIban(el) { const v=el.value.replace(/\s/g,"").toUpperCase(); el.value=v.match(/.{1,4}/g)?.join(" ")||v; }
 
 function autoFillKontoinhaber() {
   if (kontoinhaberDirty) return;
   const v = document.getElementById("vorname").value.trim();
   const n = document.getElementById("nachname").value.trim();
   const k = document.getElementById("kontoinhaber");
-  if (v || n) k.value = [v, n].filter(Boolean).join(" ");
+  if (v || n) k.value = [v,n].filter(Boolean).join(" ");
 }
 
 function showMsg(html, type) {
   const m = document.getElementById("msg");
-  m.className    = type;
-  m.innerHTML    = html;
-  m.style.display = "block";
-  m.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  m.className = type; m.innerHTML = html; m.style.display = "block";
+  m.scrollIntoView({ behavior:"smooth", block:"nearest" });
 }
 
 function resetBtn() {
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = false;
-  document.getElementById("btnText").textContent    = "Antrag absenden";
-  document.getElementById("spinner").style.display  = "none";
+  document.getElementById("submitBtn").disabled = false;
+  document.getElementById("btnText").textContent = "Antrag absenden";
+  document.getElementById("spinner").style.display = "none";
 }
 
-// ── Validierung ───────────────────────────────────────────────
+// ── Validierung ──────────────────────────────────────────────
 function validate() {
   let ok = true;
-
-  // Pflichtfelder
   ["betrag","spielDatum","spielNummer","heimTeam","auswaertsTeam",
    "vorname","nachname","email","kontoinhaber","iban"].forEach(id => {
-    const el    = document.getElementById(id);
+    const el = document.getElementById(id);
     const empty = !el.value.trim();
     el.classList.toggle("err", empty);
     if (empty) ok = false;
   });
 
-  // E-Mail-Format
   const emailEl = document.getElementById("email");
   if (emailEl.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())) {
-    emailEl.classList.add("err");
-    showMsg("Bitte eine gültige E-Mail-Adresse eingeben.", "err");
-    ok = false;
+    emailEl.classList.add("err"); showMsg("Bitte eine gültige E-Mail-Adresse eingeben.", "err"); ok = false;
   }
 
-  // IBAN: DE + 20 Ziffern
   const ibanRaw = document.getElementById("iban").value.replace(/\s/g,"");
   if (ibanRaw && !/^DE\d{20}$/.test(ibanRaw)) {
     document.getElementById("iban").classList.add("err");
-    showMsg("Bitte eine gültige deutsche IBAN eingeben (DE + 20 Ziffern).", "err");
-    ok = false;
+    showMsg("Bitte eine gültige deutsche IBAN eingeben (DE + 20 Ziffern).", "err"); ok = false;
   }
 
-  // Betrag > 0
   const betragVal = parseFloat(document.getElementById("betrag").value);
   if (isNaN(betragVal) || betragVal <= 0) {
     document.getElementById("betrag").classList.add("err");
-    if (ok) showMsg("Bitte einen gültigen Betrag größer als 0 eingeben.", "err");
-    ok = false;
+    if (ok) showMsg("Bitte einen gültigen Betrag größer als 0 eingeben.", "err"); ok = false;
   }
 
-  // Spieldatum-Prüfung (timezone-sicher via String-Vergleich)
-  const spielDatumEl  = document.getElementById("spielDatum");
-  const spielDatumVal = spielDatumEl.value;
-  if (spielDatumVal && ok) {
-    const today       = todayISO();
-    const spielYear   = parseInt(spielDatumVal.substring(0,4), 10);
-    const currentYear = new Date().getFullYear();
-
-    if (spielDatumVal > today) {
-      spielDatumEl.classList.add("err");
-      showMsg("Das Spieldatum darf nicht in der Zukunft liegen.", "err");
-      ok = false;
-    } else if (spielYear !== currentYear) {
-      spielDatumEl.classList.add("err");
-      showMsg("Anträge können nur für Spiele im laufenden Kalenderjahr gestellt werden.", "err");
-      ok = false;
-    } else if (daysBetween(spielDatumVal, today) > 30) {
-      spielDatumEl.classList.add("err");
-      showMsg("Anträge können nur bis zu 30 Tage nach dem Spiel gestellt werden.", "err");
-      ok = false;
-    }
+  const sdEl = document.getElementById("spielDatum"), sdVal = sdEl.value;
+  if (sdVal && ok) {
+    const today = todayISO();
+    const sy = parseInt(sdVal.substring(0,4),10), cy = new Date().getFullYear();
+    if (sdVal > today) { sdEl.classList.add("err"); showMsg("Das Spieldatum darf nicht in der Zukunft liegen.", "err"); ok = false; }
+    else if (sy !== cy) { sdEl.classList.add("err"); showMsg("Anträge können nur für Spiele im laufenden Kalenderjahr gestellt werden.", "err"); ok = false; }
+    else if (daysBetween(sdVal, today) > 30) { sdEl.classList.add("err"); showMsg("Anträge können nur bis zu 30 Tage nach dem Spiel gestellt werden.", "err"); ok = false; }
   }
 
-  // Einwilligung
   const cb = document.getElementById("bestaetigung");
-  if (!cb.checked) {
-    cb.style.outline = "2px solid #c00";
-    if (ok) showMsg("Bitte bestätige die Richtigkeit deiner Angaben.", "err");
-    ok = false;
-  } else {
-    cb.style.outline = "";
-  }
+  if (!cb.checked) { cb.style.outline = "2px solid #c00"; if (ok) showMsg("Bitte bestätige die Richtigkeit deiner Angaben.", "err"); ok = false; }
+  else cb.style.outline = "";
 
-  // Beleg vorhanden
-  if (!processedFile) {
-    uploadArea.classList.add("upload-err");
-    if (ok) showMsg("Bitte lade einen Beleg (Bild oder PDF) hoch.", "err");
-    ok = false;
-  } else {
-    uploadArea.classList.remove("upload-err");
-  }
+  if (!processedFile) { uploadArea.classList.add("upload-err"); if (ok) showMsg("Bitte lade einen Beleg (Bild oder PDF) hoch.", "err"); ok = false; }
+  else uploadArea.classList.remove("upload-err");
 
   return ok;
 }
 
-// ── Formular absenden ─────────────────────────────────────────
+// ── Formular absenden ────────────────────────────────────────
 document.getElementById("mainForm").addEventListener("submit", async function(e) {
   e.preventDefault();
   document.getElementById("msg").style.display = "none";
-
   if (!validate()) return;
 
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
-  document.getElementById("btnText").textContent   = "Wird gesendet …";
+  document.getElementById("btnText").textContent = "Wird gesendet …";
   document.getElementById("spinner").style.display = "inline-block";
 
   const ibanRaw = document.getElementById("iban").value.replace(/\s/g,"").toUpperCase();
@@ -706,42 +628,38 @@ document.getElementById("mainForm").addEventListener("submit", async function(e)
     belegFileName: processedFile.name,
     belegMimeType: processedFile.mimeType,
     belegBase64:   processedFile.base64,
+    faxNummer:     document.getElementById("faxNummer").value,
+    _ts:           PAGE_LOAD_TS,
+    _tk:           generateToken(PAGE_LOAD_TS),
   };
 
   try {
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    const resp = await fetch(PROXY_URL, { method: "POST", signal: ctrl.signal, body: JSON.stringify(payload) });
+    const resp = await fetch(PROXY_URL, { method:"POST", signal:ctrl.signal, body:JSON.stringify(payload) });
     clearTimeout(tid);
 
     let json;
-    try { json = await resp.json(); }
-    catch { throw new Error("Ungültige Server-Antwort."); }
+    try { json = await resp.json(); } catch { throw new Error("Ungültige Server-Antwort."); }
 
-    if (json.duplicate) {
-      showMsg("⚠️ " + escHtml(json.error || "Dieser Beleg wurde bereits eingereicht."), "err");
-      resetBtn();
-      return;
-    }
+    if (json.duplicate) { showMsg("⚠️ " + escHtml(json.error || "Dieser Beleg wurde bereits eingereicht."), "err"); resetBtn(); return; }
 
     if (json.success) {
-      document.getElementById("mainForm").style.display        = "none";
-      document.getElementById("successScreen").style.display   = "block";
-      document.getElementById("successName").textContent       = "Danke, " + payload.vorname + "!";
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.getElementById("mainForm").style.display      = "none";
+      document.getElementById("successScreen").style.display = "block";
+      document.getElementById("successName").textContent     = "Danke, " + payload.vorname + "!";
+      window.scrollTo({ top:0, behavior:"smooth" });
     } else {
       showMsg("❌ " + escHtml(json.error || "Unbekannter Fehler. Bitte versuche es erneut."), "err");
       resetBtn();
     }
-  } catch (err) {
+  } catch(err) {
     const aborted = err.name === "AbortError";
     showMsg(
       "<strong>" + (aborted ? "Zeitüberschreitung" : "Übermittlungsfehler") + ":</strong> "
       + escHtml(aborted ? "Der Server hat nicht rechtzeitig geantwortet (> 90 Sek.)." : err.message)
-      + " Bitte versuche es erneut oder schreibe an "
-      + '<a href="mailto:kassenwart@bcerfurt.de">kassenwart@bcerfurt.de</a>.',
-      "err"
-    );
+      + ' Bitte versuche es erneut oder schreibe an <a href="mailto:kassenwart@bcerfurt.de">kassenwart@bcerfurt.de</a>.',
+      "err");
     resetBtn();
   }
 });
