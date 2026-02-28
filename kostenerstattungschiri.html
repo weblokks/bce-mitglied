@@ -371,7 +371,7 @@ function compressImage(file) {
         const ctx = c.getContext("2d");
         ctx.fillStyle = "#fff"; ctx.fillRect(0,0,w,h);
         ctx.drawImage(img, 0, 0, w, h);
-        const mime = file.type === "image/png" ? "image/jpeg" : file.type;
+        const mime = file.type;
         const url  = c.toDataURL(mime, QUALITY);
         if (url.length * 0.75 > MAX_B64_BYTES) return rej(new Error("Bild ist nach Komprimierung noch zu groß."));
         res(url.split(",")[1]);
