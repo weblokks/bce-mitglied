@@ -86,6 +86,18 @@
     /* Honeypot */
     .hp { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; overflow: hidden; }
 
+    /* AI-Erkennung */
+    .ai-box { display: none; margin-top: .8rem; background: #f7f9ff; border: 1px solid #c8d4f0; border-radius: 6px; padding: .8rem 1rem; }
+    .ai-status { font-size: .85rem; color: #444; margin-bottom: .4rem; }
+    .ai-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(0,0,0,.15); border-top-color: #336; border-radius: 50%; animation: rot .7s linear infinite; vertical-align: middle; margin-right: .3rem; }
+    .ai-warning { display: none; font-size: .82rem; color: #8a5700; background: #fff8e1; border: 1px solid #ffe082; border-radius: 4px; padding: .5rem .7rem; margin-top: .4rem; }
+    .ai-result { display: none; margin-top: .5rem; }
+    .ai-field-row { display: flex; align-items: center; gap: .5rem; padding: .3rem 0; font-size: .85rem; }
+    .ai-field-label { color: #555; font-weight: 700; min-width: 90px; }
+    .ai-field-value { flex: 1; color: #111; }
+    .ai-apply-btn { background: #111; color: #fff; border: none; border-radius: 4px; padding: .25rem .6rem; font-size: .78rem; cursor: pointer; white-space: nowrap; }
+    .ai-apply-btn:hover { background: #333; }
+
     @media (max-width: 520px) { .card { padding: 1.3rem 1rem; } .row { flex-direction: column; gap: 0; } }
   </style>
 </head>
@@ -99,7 +111,7 @@
 
     <!-- BELEG HOCHLADEN -->
     <fieldset>
-      <legend>Beleg hochladen <span style="font-weight:400;color:#888;font-size:.82rem">(Pflicht)</span></legend>
+      <legend>Beleg hochladen <span class="req">*</span></legend>
       <div class="upload-area" id="uploadArea">
         <input type="file" id="fileInput" accept="image/*,application/pdf">
         <div class="upload-icon">📎</div>
@@ -111,6 +123,11 @@
         <span id="fileName"></span>
         <span class="file-sz" id="fileSize"></span>
         <button type="button" class="file-rm" id="fileRemove">Entfernen</button>
+      </div>
+      <div class="ai-box" id="aiBox">
+        <div class="ai-status" id="aiStatus"></div>
+        <div class="ai-warning" id="aiWarning"></div>
+        <div class="ai-result" id="aiResult"></div>
       </div>
     </fieldset>
 
@@ -295,8 +312,10 @@ function handleFile(f) {
 
   var rd = new FileReader();
   rd.onload = function(ev) {
-    uploadedFile = { name: f.name, base64: ev.target.result.split(",")[1], mimeType: f.type, size: f.size };
+    var b64 = ev.target.result.split(",")[1];
+    uploadedFile = { name: f.name, base64: b64, mimeType: f.type, size: f.size };
     renderFile();
+    startAiAnalysis(b64, f.type);
   };
   rd.readAsDataURL(f);
 }
@@ -316,7 +335,100 @@ function renderFile() {
 gi("fileRemove").addEventListener("click", function() {
   uploadedFile = null;
   renderFile();
+  gi("aiBox").style.display = "none";
 });
+
+var aiData = null;
+
+// ── Belegerkennung (Azure) ──────────────────────────────────
+function startAiAnalysis(base64, mimeType) {
+  var aiBox = gi("aiBox");
+  aiBox.style.display = "block";
+  gi("aiStatus").innerHTML = '<span class="ai-spinner"></span> Beleg wird analysiert …';
+  gi("aiResult").style.display  = "none";
+  gi("aiWarning").style.display = "none";
+  aiData = null;
+
+  var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+  var tid  = setTimeout(function() { if (ctrl) ctrl.abort(); }, 60000);
+  var opts = {
+    method:  "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body:    JSON.stringify({ action: "analyze", base64: base64, mimeType: mimeType }),
+  };
+  if (ctrl) opts.signal = ctrl.signal;
+
+  fetch(PROXY, opts)
+    .then(function(r) { clearTimeout(tid); return r.json(); })
+    .then(function(j) {
+      if (j && j.success && j.data) {
+        aiData = j.data;
+        gi("aiStatus").textContent = "✅ Erkennung abgeschlossen";
+        renderAiResult(j.data);
+      } else {
+        gi("aiStatus").textContent = "";
+        showAiWarning("⚠️ " + (j && j.error ? j.error : "Erkennung nicht möglich – bitte manuell ausfüllen."));
+      }
+    })
+    .catch(function(err) {
+      clearTimeout(tid);
+      gi("aiStatus").textContent = "";
+      showAiWarning("⚠️ Analyse fehlgeschlagen: " + (err.name === "AbortError" ? "Zeitüberschreitung." : err.message) + " – bitte manuell ausfüllen.");
+    });
+}
+
+function showAiWarning(msg) {
+  var w = gi("aiWarning");
+  w.style.display = "block";
+  w.textContent = msg;
+}
+
+function escHtml(s) {
+  var d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderAiResult(data) {
+  var el = gi("aiResult");
+  el.style.display = "block";
+  var rows = [];
+  if (data.datum) {
+    var parts = data.datum.split("-");
+    rows.push(["Belegdatum", parts[2] + "." + parts[1] + "." + parts[0], "datum"]);
+  }
+  if (data.betrag) {
+    rows.push(["Betrag", parseFloat(data.betrag).toLocaleString("de-DE", {minimumFractionDigits:2, maximumFractionDigits:2}) + " €", "betrag"]);
+  }
+  if (rows.length === 0) {
+    el.innerHTML = "<div style='font-size:.82rem;color:#888'>Keine Felder erkannt – bitte manuell ausfüllen.</div>";
+    return;
+  }
+  var html = "";
+  for (var i = 0; i < rows.length; i++) {
+    html += '<div class="ai-field-row">'
+      + '<span class="ai-field-label">' + escHtml(rows[i][0]) + ':</span>'
+      + '<span class="ai-field-value">' + escHtml(rows[i][1]) + '</span>'
+      + '<button type="button" class="ai-apply-btn" onclick="window._applyAiField(\'' + rows[i][2] + '\')">Übernehmen</button>'
+      + '</div>';
+  }
+  if (rows.length > 1) {
+    html += '<div style="margin-top:.5rem"><button type="button" class="ai-apply-btn" style="font-weight:700;font-size:.85rem" onclick="window._applyAllAi()">↑ Alle übernehmen</button></div>';
+  }
+  el.innerHTML = html;
+}
+
+window._applyAiField = function(key) {
+  if (!aiData) return;
+  if (key === "datum" && aiData.datum)  fBelegDatum.value = aiData.datum;
+  if (key === "betrag" && aiData.betrag) fBetrag.value = parseFloat(aiData.betrag).toFixed(2);
+};
+
+window._applyAllAi = function() {
+  if (!aiData) return;
+  if (aiData.datum)  fBelegDatum.value = aiData.datum;
+  if (aiData.betrag) fBetrag.value = parseFloat(aiData.betrag).toFixed(2);
+};
 
 // ── Validierung ─────────────────────────────────────────
 function validate() {
