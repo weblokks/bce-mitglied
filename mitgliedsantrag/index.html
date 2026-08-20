@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mitgliedsantrag BCE - V01</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #111;
+    padding: 1.5rem 1rem;
+  }
+
+  .card {
+    max-width: 660px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    padding: 2rem 1.8rem;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 1.6rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid #111;
+    text-align: center;
+  }
+
+  .type-select {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.8rem;
+  }
+  .type-btn {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 1.5px solid #bbb;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    color: #444;
+  }
+  .type-btn:hover { border-color: #555; color: #111; }
+  .type-btn.active {
+    border-color: #111;
+    background: #111;
+    color: #fff;
+  }
+
+  #formArea { display: none; }
+
+  fieldset {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 1.1rem 1.2rem 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+  legend {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #111;
+    padding: 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .row { display: flex; gap: 0.8rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
+  .fg  { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
+  .fg.sm { flex: 0 0 95px; }
+  .fg.full { flex: 0 0 100%; }
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+  }
+  .req { color: #c00; margin-left: 1px; }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  select {
+    border: 1.5px solid #bbb;
+    border-radius: 5px;
+    padding: 0.52rem 0.7rem;
+    font-size: 0.92rem;
+    background: #fafafa;
+    width: 100%;
+    color: #111;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: #111;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+    background: #fff;
+  }
+  input.err, select.err { border-color: #c00 !important; }
+
+  .consent-block {
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #333;
+  }
+  .consent-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 0.7rem;
+  }
+  .consent-row input[type="checkbox"] {
+    width: 1rem; height: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.18rem;
+    accent-color: #111;
+  }
+  .consent-row label {
+    font-weight: 400;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: #222;
+  }
+  .consent-row a { color: #111; text-decoration: underline; }
+
+  .btn {
+    width: 100%;
+    padding: 0.82rem;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .btn:hover:not(:disabled) { background: #333; }
+  .btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .spinner {
+    width: 17px; height: 17px;
+    border: 2.5px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #msg {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  #msg.ok  { background: #f0fff4; color: #1a6e38; border: 1px solid #b2dfca; }
+  #msg.err { background: #fff0f0; color: #9a1c1c; border: 1px solid #f5b0b0; }
+
+  #successScreen {
+    display: none;
+    text-align: center;
+    padding: 2.5rem 1rem;
+  }
+  #successScreen .icon { font-size: 3rem; margin-bottom: 1rem; }
+  #successScreen h2 { color: #111; margin-bottom: 0.5rem; }
+  #successScreen p  { color: #555; font-size: 0.93rem; line-height: 1.6; }
+
+  #thgRow { display: none; }
+
+  /* Geburtsdatum + Geschlecht: auf schmalen Screens untereinander */
+  @media (max-width: 480px) {
+    .fg.date-field, .fg.sex-field { flex: 0 0 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Mitgliedsantrag BC Erfurt e.V.</h1>
+
+  <!-- Typ-Auswahl: Kind links, da häufiger -->
+  <div class="type-select" id="typeSelect">
+    <button type="button" class="type-btn" id="btnChild" onclick="setType('child')">
+      Mein Kind anmelden
+    </button>
+    <button type="button" class="type-btn" id="btnSelf" onclick="setType('self')">
+      Mich selbst anmelden
+    </button>
+  </div>
+
+  <form id="form" novalidate>
+    <div id="formArea">
+
+      <!-- Persönliche Daten -->
+      <fieldset>
+        <legend id="legendPersonal">Persönliche Daten</legend>
+        <div class="row">
+          <div class="fg">
+            <label for="vorname">Vorname <span class="req">*</span></label>
+            <input type="text" id="vorname" name="vorname" required autocomplete="given-name">
+          </div>
+          <div class="fg">
+            <label for="nachname">Nachname <span class="req">*</span></label>
+            <input type="text" id="nachname" name="nachname" required autocomplete="family-name">
+          </div>
+        </div>
+        <div class="row">
+          <div class="fg date-field">
+            <label for="geburtsdatum">Geburtsdatum <span class="req">*</span></label>
+            <input type="date" id="geburtsdatum" name="geburtsdatum" required>
+          </div>
+          <div class="fg sex-field">
+            <label for="geschlecht">Geschlecht <span class="req">*</span></label>
+            <select id="geschlecht" name="geschlecht" required>
+              <option value="">– wählen –</option>
+              <option value="malePerson">Männlich</option>
+              <option value="femalePerson">Weiblich</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Spielbetrieb (nur Erwachsene) -->
+      <fieldset id="spielbetriebSection" style="display:none;">
+        <legend>Spielbetrieb</legend>
+        <div class="row">
+          <div class="fg">
+            <div class="consent-row" style="margin-top:0;">
+              <input type="checkbox" id="nurFreizeit" name="nurFreizeit">
+              <label for="nurFreizeit">Ich möchte ausschließlich im Freizeitbereich spielen und nehme <strong>nicht</strong> am Spielbetrieb teil.</label>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Kontaktdaten -->
+      <fieldset>
+        <legend id="legendContact">Kontaktdaten</legend>
+        <div class="row">
+          <div class="fg">
+            <label for="email">E-Mail <span class="req">*</span></label>
+            <input type="email" id="email" name="email" required autocomplete="email">
+          </div>
+          <div class="fg">
+            <label for="telefon">Telefon <span class="req">*</span></label>
+            <input type="tel" id="telefon" name="telefon" required autocomplete="tel" placeholder="z.B. 0361 123456">
+          </div>
+        </div>
+        <div class="row">
+          <div class="fg">
+            <label for="strasse">Straße und Hausnummer</label>
+            <input type="text" id="strasse" name="strasse" autocomplete="street-address">
+          </div>
+        </div>
+        <div class="row">
+          <div class="fg sm">
+            <label for="plz">PLZ <span class="req">*</span></label>
+            <input type="text" id="plz" name="plz" required maxlength="5" pattern="\d{5}" autocomplete="postal-code">
+          </div>
+          <div class="fg">
+            <label for="ort">Ort <span class="req">*</span></label>
+            <input type="text" id="ort" name="ort" required autocomplete="address-level2">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Bankverbindung -->
+      <fieldset>
+        <legend id="legendBank">Bankverbindung</legend>
+        <div class="row">
+          <div class="fg">
+            <label for="kontoinhaber">Kontoinhaber <span class="req">*</span></label>
+            <input type="text" id="kontoinhaber" name="kontoinhaber" required autocomplete="name">
+          </div>
+        </div>
+        <div class="row">
+          <div class="fg">
+            <label for="iban">IBAN <span class="req">*</span></label>
+            <input type="text" id="iban" name="iban"
+                   placeholder="DE00 0000 0000 0000 0000 00"
+                   maxlength="27" autocomplete="off"
+                   oninput="formatIban(this)" required>
+          </div>
+        </div>
+        <div class="row" id="thgCheckRow" style="display:none;">
+          <div class="fg">
+            <div class="consent-row" style="margin-top:0;">
+              <input type="checkbox" id="thgCheck" onchange="toggleThg(this)">
+              <label for="thgCheck">Teilhabegutschein (THG) vorhanden</label>
+            </div>
+          </div>
+        </div>
+        <div class="row" id="thgRow">
+          <div class="fg">
+            <label for="thgNr">THG-Nummer</label>
+            <input type="text" id="thgNr" name="thgNr" placeholder="THG-Nummer (optional)">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Einwilligung -->
+      <div class="consent-block">
+        Ich erkläre mich damit einverstanden, dass die oben angegebenen personenbezogenen Daten
+        zur Verwaltung der Vereinsmitgliedschaft im BC Erfurt e.V. gespeichert und verarbeitet werden.
+        Eine Weitergabe an Dritte erfolgt nicht. Weiterhin bestätige ich, dass ich die Satzung und
+        Beitragsordnung des BC Erfurt e.V. zur Kenntnis genommen habe und anerkenne.
+        <div class="consent-row">
+          <input type="checkbox" id="satzung" name="satzung" required>
+          <label for="satzung">
+            Ich stimme zu und erkenne
+            <a href="https://bcerfurt.de/policies/" target="_blank">Satzung und Beitragsordnung</a>
+            an.
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">
+        <span id="btnText">Mitgliedschaft beantragen</span>
+        <span class="spinner" id="spinner"></span>
+      </button>
+      <div id="msg"></div>
+
+    </div>
+  </form>
+
+  <div id="successScreen">
+    <div class="icon">✅</div>
+    <h2 id="successName"></h2>
+    <p>Der Mitgliedsantrag wurde erfolgreich übermittelt.<br>
+       Wir melden uns in Kürze per E-Mail bei dir.</p>
+  </div>
+</div>
+
+<script>
+  const PROXY_URL = "https://script.google.com/macros/s/AKfycbw1AKdEBFAO5t15-kXevdr13tT76upFLPWZMNiLrDaLm3lwedetRi2k7Iw88BqBjczZmA/exec";
+  const TIMEOUT_MS = 60000;
+
+  let memberType = null;
+
+  function setType(type) {
+    memberType = type;
+    document.getElementById('btnSelf').classList.toggle('active',  type === 'self');
+    document.getElementById('btnChild').classList.toggle('active', type === 'child');
+    const isChild = type === 'child';
+    document.getElementById('legendPersonal').textContent = isChild ? 'Daten des Kindes / Jugendlichen' : 'Persönliche Daten';
+    document.getElementById('legendContact').textContent  = isChild ? 'Kontaktdaten des Erziehungsberechtigten' : 'Kontaktdaten';
+    document.getElementById('legendBank').textContent     = isChild ? 'Bankverbindung des Erziehungsberechtigten' : 'Bankverbindung';
+    document.getElementById('thgCheckRow').style.display    = isChild ? '' : 'none';
+    document.getElementById('spielbetriebSection').style.display = isChild ? 'none' : '';
+    if (!isChild) {
+      document.getElementById('thgCheck').checked = false;
+      document.getElementById('thgRow').style.display = 'none';
+    } else {
+      document.getElementById('nurFreizeit').checked = false;
+    }
+    document.getElementById('formArea').style.display = 'block';
+    document.getElementById('msg').style.display = 'none';
+  }
+
+  function toggleThg(cb) {
+    document.getElementById('thgRow').style.display = cb.checked ? 'flex' : 'none';
+    if (!cb.checked) document.getElementById('thgNr').value = '';
+  }
+
+  let kontoinhaberManual = false;
+  document.getElementById('kontoinhaber').addEventListener('input', () => { kontoinhaberManual = true; });
+  ['vorname','nachname'].forEach(id => {
+    document.getElementById(id).addEventListener('blur', prefillKontoinhaber);
+  });
+  function prefillKontoinhaber() {
+    if (memberType === 'child' || kontoinhaberManual) return;
+    const v = document.getElementById('vorname').value.trim();
+    const n = document.getElementById('nachname').value.trim();
+    document.getElementById('kontoinhaber').value = [v, n].filter(Boolean).join(' ');
+  }
+
+  function formatIban(el) {
+    let v = el.value.replace(/\s/g,'').toUpperCase();
+    el.value = v.match(/.{1,4}/g)?.join(' ') || v;
+  }
+
+  function validate() {
+    let ok = true;
+    ['vorname','nachname','geburtsdatum','geschlecht','email','telefon','plz','ort','kontoinhaber','iban'].forEach(id => {
+      const el = document.getElementById(id);
+      const empty = !el.value.trim();
+      el.classList.toggle('err', empty);
+      if (empty) ok = false;
+    });
+    const emailEl = document.getElementById('email');
+    if (emailEl.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) {
+      emailEl.classList.add('err'); ok = false;
+    }
+    const plzEl = document.getElementById('plz');
+    if (plzEl.value && !/^\d{5}$/.test(plzEl.value)) {
+      plzEl.classList.add('err'); ok = false;
+    }
+    const ibanRaw = document.getElementById('iban').value.replace(/\s/g,'');
+    if (ibanRaw && !/^DE\d{20}$/.test(ibanRaw)) {
+      document.getElementById('iban').classList.add('err');
+      showMsg('Bitte eine gültige deutsche IBAN eingeben (DE + 20 Ziffern).', 'err');
+      ok = false;
+    }
+    if (!document.getElementById('satzung').checked) {
+      showMsg('Bitte stimme der Satzung und Beitragsordnung zu.', 'err');
+      ok = false;
+    }
+    return ok;
+  }
+
+  function showMsg(html, type) {
+    const el = document.getElementById('msg');
+    el.className = type;
+    el.innerHTML = html;
+    el.style.display = 'block';
+  }
+
+  function setLoading(active) {
+    const btn     = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btnText');
+    btn.disabled          = active;
+    spinner.style.display = active ? 'block' : 'none';
+    btnText.textContent   = active ? 'Wird übermittelt …' : 'Mitgliedschaft beantragen';
+  }
+
+  document.getElementById('form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    document.getElementById('msg').style.display = 'none';
+    if (!memberType) return showMsg('Bitte wähle zuerst eine Anmeldeoption.', 'err');
+    if (!validate()) return;
+
+    setLoading(true);
+
+    const ibanRaw = document.getElementById('iban').value.replace(/\s/g,'');
+    const data = {
+      memberType,
+      geschlecht:   document.getElementById('geschlecht').value,
+      vorname:      document.getElementById('vorname').value.trim(),
+      nachname:     document.getElementById('nachname').value.trim(),
+      geburtsdatum: document.getElementById('geburtsdatum').value,
+      email:        document.getElementById('email').value.trim(),
+      telefon:      document.getElementById('telefon').value.trim(),
+      strasse:      document.getElementById('strasse').value.trim(),
+      plz:          document.getElementById('plz').value.trim(),
+      ort:          document.getElementById('ort').value.trim(),
+      kontoinhaber: document.getElementById('kontoinhaber').value.trim(),
+      iban:         ibanRaw,
+      thgNr:        document.getElementById('thgNr').value.trim(),
+      nurFreizeit:  memberType === 'self' ? document.getElementById('nurFreizeit').checked : false,
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    try {
+      const res = await fetch(PROXY_URL, {
+        method:   'POST',
+        headers:  { 'Content-Type': 'text/plain' },
+        body:     JSON.stringify(data),
+        redirect: 'follow',
+        signal:   controller.signal,
+      });
+      clearTimeout(timer);
+
+      const text = await res.text();
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch(parseErr) {
+        throw new Error('Unerwartete Serverantwort: ' + text.substring(0, 300));
+      }
+
+      if (json.success) {
+        document.getElementById('form').style.display = 'none';
+        document.getElementById('successName').textContent =
+          'Willkommen, ' + data.vorname + ' ' + data.nachname + '!';
+        document.getElementById('successScreen').style.display = 'block';
+      } else {
+        const detail = json.apiResponse ? ' | API: ' + JSON.stringify(json.apiResponse) : '';
+        throw new Error((json.error || 'Unbekannter Fehler') + detail);
+      }
+
+    } catch(err) {
+      clearTimeout(timer);
+      const aborted = err.name === 'AbortError';
+      showMsg(
+        '<strong>' + (aborted ? 'Zeitüberschreitung' : 'Fehler bei der Übermittlung') + ':</strong> '
+        + (aborted ? 'Der Server hat nicht rechtzeitig geantwortet (>60 Sek.).' : err.message)
+        + '<br>Bitte versuche es erneut oder schreibe uns an '
+        + '<a href="mailto:info@bcerfurt.de">info@bcerfurt.de</a>.',
+        'err'
+      );
+      setLoading(false);
+    }
+  });
+</script>
+</body>
+</html>

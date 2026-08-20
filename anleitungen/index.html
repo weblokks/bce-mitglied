@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../assets/logo.png">
+<title>BC Erfurt e.V. – Anleitungen</title>
+</head>
+<body>
+<style>
+:root {
+  --ground:     #eff3f4;
+  --surface:    #ffffff;
+  --surface-2:  #f6f9fa;
+  --ink:        #101214;
+  --ink-soft:   #52585c;
+  --ink-mute:   #868d92;
+  --rule:       #dce3e5;
+  --rule-soft:  #e7edef;
+  --pink:       #ec0c6d;
+  --cyan:       #23bdcd;
+  --accent:     #d1005e;
+  --chrome:     rgba(239, 243, 244, .74);
+  --shadow:     0 1px 2px rgba(16,18,20,.05), 0 12px 32px -12px rgba(16,18,20,.16);
+  --radius:     14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:     #0e1113;
+    --surface:    #171b1e;
+    --surface-2:  #1c2124;
+    --ink:        #eceff0;
+    --ink-soft:   #a2aaaf;
+    --ink-mute:   #7a8388;
+    --rule:       #2a3134;
+    --rule-soft:  #232a2d;
+    --pink:       #ff3d8b;
+    --cyan:       #35d3e3;
+    --accent:     #ff3d8b;
+    --chrome:     rgba(14, 17, 19, .74);
+    --shadow:     0 1px 2px rgba(0,0,0,.4), 0 12px 32px -12px rgba(0,0,0,.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:     #0e1113;
+  --surface:    #171b1e;
+  --surface-2:  #1c2124;
+  --ink:        #eceff0;
+  --ink-soft:   #a2aaaf;
+  --ink-mute:   #7a8388;
+  --rule:       #2a3134;
+  --rule-soft:  #232a2d;
+  --pink:       #ff3d8b;
+  --cyan:       #35d3e3;
+  --accent:     #ff3d8b;
+  --chrome:     rgba(14, 17, 19, .74);
+  --shadow:     0 1px 2px rgba(0,0,0,.4), 0 12px 32px -12px rgba(0,0,0,.6);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Kopfbereich ─────────────────────────────────────── */
+.hero {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 7vw, 4.5rem) clamp(1.1rem, 4vw, 2rem) 1.5rem;
+}
+.brandmark {
+  display: block;
+  width: clamp(150px, 26vw, 208px);
+  height: auto;
+  margin: 0 0 1.4rem;
+  box-sizing: content-box;
+}
+/* Die schwarze Logokontur verschwindet auf dunklem Grund – dort trägt sie eine helle Fläche. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brandmark {
+    background: #fff; padding: .6rem .75rem; border-radius: 12px;
+  }
+}
+:root[data-theme="dark"] .brandmark { background: #fff; padding: .6rem .75rem; border-radius: 12px; }
+.brandrule {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--pink) 0 50%, var(--cyan) 50% 100%);
+  max-width: 62rem;
+  margin: 0 auto 1.6rem;
+}
+.backlink { margin: 0 0 .9rem; font-size: .9rem; }
+.backlink a { color: var(--ink-soft); text-decoration: none; }
+.backlink a:hover { color: var(--accent); }
+.hero h1 {
+  margin: 0 0 .7rem;
+  font-size: clamp(2rem, 5.4vw, 3.1rem);
+  line-height: 1.06;
+  letter-spacing: -.028em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.hero p {
+  margin: 0;
+  max-width: 34em;
+  font-size: clamp(1rem, 1.9vw, 1.12rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ── Reiter ──────────────────────────────────────────── */
+.tabbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--chrome);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--rule-soft);
+  padding: .6rem clamp(1.1rem, 4vw, 2rem);
+}
+.tabbar-inner { max-width: 62rem; margin: 0 auto; }
+.segmented {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule-soft);
+  border-radius: 11px;
+  padding: 3px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* ohne min-width:0 zwingt der Grid-Inhalt die ganze Seite in die Breite */
+  min-width: 0;
+}
+.segmented::-webkit-scrollbar { display: none; }
+.thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  height: calc(100% - 6px);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(20,18,14,.14);
+  transition: transform .4s cubic-bezier(.32,.72,0,1), width .4s cubic-bezier(.32,.72,0,1);
+  pointer-events: none;
+}
+.seg {
+  position: relative;
+  z-index: 1;
+  appearance: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 600;
+  letter-spacing: -.005em;
+  color: var(--ink-soft);
+  padding: .5rem .55rem;
+  min-width: max-content;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color .2s ease, transform .1s ease-out;
+  white-space: nowrap;
+}
+.seg:hover { color: var(--ink); }
+.seg[aria-selected="true"] { color: var(--ink); }
+.seg:active { transform: scale(.97); }
+.seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg .num {
+  display: inline-block;
+  min-width: 1.15em;
+  color: var(--ink-mute);
+  font-variant-numeric: tabular-nums;
+}
+.seg[aria-selected="true"] .num { color: var(--accent); }
+.seg[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 50%; bottom: .28rem;
+  width: 1.15rem; height: 2px;
+  border-radius: 1px;
+  background: var(--pink);
+  transform: translateX(-50%);
+}
+
+/* ── Panel ───────────────────────────────────────────── */
+main { max-width: 62rem; margin: 0 auto; padding: 0 clamp(1.1rem, 4vw, 2rem) 5rem; }
+.panel, .panel[hidden] { display: none; }
+.panel.is-active { display: block; animation: enter .34s cubic-bezier(.32,.72,0,1) both; }
+@keyframes enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.panel-head { padding: 2.2rem 0 1.4rem; }
+.kicker {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 0 0 .5rem;
+}
+.panel-head h2 {
+  margin: 0 0 .6rem;
+  font-size: clamp(1.55rem, 3.6vw, 2.1rem);
+  line-height: 1.12;
+  letter-spacing: -.022em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.standfirst {
+  margin: 0;
+  max-width: 42em;
+  font-size: 1.02rem;
+  color: var(--ink-soft);
+}
+.standfirst strong { color: var(--ink); font-weight: 600; }
+
+/* ── Aufruf zum Formular ─────────────────────────────── */
+.cta { margin-top: 1.4rem; }
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  background: var(--pink);
+  color: #fff;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -.005em;
+  padding: .8rem 1.35rem;
+  border-radius: 11px;
+  box-shadow: 0 1px 2px rgba(16,18,20,.12), 0 10px 24px -12px rgba(236,12,109,.55);
+  transition: transform .12s ease-out, filter .15s ease;
+}
+.cta-btn:hover { filter: brightness(1.07); }
+.cta-btn:active { transform: scale(.975); }
+.cta-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.cta-btn .arrow { transition: transform .3s cubic-bezier(.32,.72,0,1); font-size: 1.05em; line-height: 1; }
+.cta-btn:hover .arrow { transform: translateX(3px); }
+.cta-note { margin: .55rem 0 0; font-size: .85rem; color: var(--ink-mute); }
+
+.cta-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.4rem;
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-left: 4px solid var(--cyan);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.3rem clamp(1.1rem, 3vw, 1.7rem);
+}
+.cta-end p { margin: 0; font-size: .95rem; color: var(--ink-soft); flex: 1 1 16rem; }
+.cta-end p strong { color: var(--ink); font-weight: 650; display: block; font-size: 1.02rem; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.4rem clamp(1.1rem, 3vw, 1.7rem);
+  margin-bottom: 1rem;
+}
+.card > h3 {
+  margin: 0 0 1rem;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Checkliste */
+ul.check { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+ul.check li { position: relative; padding-left: 1.65rem; color: var(--ink-soft); }
+ul.check li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: .42em;
+  width: .78rem; height: .78rem;
+  border: 1.5px solid var(--ink-mute);
+  border-radius: 3px;
+}
+
+/* Schritte */
+ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; gap: 1.15rem; }
+ol.steps > li { counter-increment: s; position: relative; padding-left: 2.5rem; }
+ol.steps > li::before {
+  content: counter(s);
+  position: absolute;
+  left: 0; top: 0;
+  width: 1.65rem; height: 1.65rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+ol.steps h3 { margin: 0 0 .12rem; font-size: 1rem; font-weight: 650; letter-spacing: -.008em; }
+ol.steps p { margin: 0; color: var(--ink-soft); font-size: .95rem; }
+
+/* Fakten */
+dl.facts {
+  display: grid;
+  grid-template-columns: minmax(9rem, 30%) 1fr;
+  margin: 0;
+  border-top: 1px solid var(--rule-soft);
+}
+dl.facts dt, dl.facts dd {
+  margin: 0;
+  padding: .62rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  font-size: .94rem;
+}
+dl.facts dt { font-weight: 650; padding-right: 1rem; }
+dl.facts dd { color: var(--ink-soft); }
+@media (max-width: 34rem) {
+  dl.facts { grid-template-columns: 1fr; }
+  dl.facts dt { padding-bottom: 0; border-bottom: 0; }
+  dl.facts dd { padding-top: .12rem; }
+}
+
+/* Ergebnis */
+ul.after { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+ul.after li { position: relative; padding-left: 1.5rem; color: var(--ink-soft); font-size: .95rem; }
+ul.after li::before {
+  content: "";
+  position: absolute;
+  left: .18rem; top: .58em;
+  width: .42rem; height: .42rem;
+  border-radius: 50%;
+  background: var(--cyan);
+}
+ul.after li strong { color: var(--ink); font-weight: 600; }
+
+/* Fehlerbilder */
+/* min() statt fester Mindestbreite: auf dem Handy schrumpft die Tabelle mit,
+   statt die ganze Seite seitlich scrollen zu lassen. */
+table.trouble { width: 100%; border-collapse: collapse; min-width: min(30rem, 100%); }
+table.trouble th {
+  text-align: left;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  padding: 0 1rem .5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+table.trouble td {
+  vertical-align: top;
+  padding: .7rem 1rem .7rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  color: var(--ink-soft);
+  font-size: .94rem;
+}
+table.trouble td:first-child { width: 42%; color: var(--ink); }
+table.trouble td:last-child { padding-right: 0; }
+.msg {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .84em;
+  background: var(--surface-2);
+  border: 1px solid var(--rule-soft);
+  border-radius: 4px;
+  padding: .06em .34em;
+  overflow-wrap: anywhere;
+}
+b.no {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Merkkasten */
+.note {
+  background: var(--surface-2);
+  border-left: 3px solid var(--cyan);
+  border-radius: 0 8px 8px 0;
+  padding: .85rem 1.1rem;
+  font-size: .94rem;
+  color: var(--ink-soft);
+  margin-bottom: 1rem;
+}
+.note strong { color: var(--ink); font-weight: 650; }
+
+footer.page {
+  border-top: 1px solid var(--rule-soft);
+  padding: 1.6rem clamp(1.1rem, 4vw, 2rem) 3rem;
+}
+footer.page div {
+  max-width: 62rem;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem 1.4rem;
+  justify-content: space-between;
+  font-size: .84rem;
+  color: var(--ink-mute);
+}
+footer.page a { color: var(--ink-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+  .panel.is-active { animation: none; }
+}
+</style>
+
+<header class="hero">
+  <img class="brandmark" src="../assets/logo.png" alt="Basketball Club Erfurt">
+  <p class="backlink"><a href="../">← Übersicht</a></p>
+  <h1>Mitglied werden und abrechnen</h1>
+  <p>Der Weg in den Verein und drei Wege, ausgelegtes Geld zurückzubekommen.
+     Jede Anleitung sagt dir, was du brauchst, wie es Schritt für Schritt geht und
+     was danach passiert – und führt dich mit einem Klick zum passenden Formular.</p>
+</header>
+<div class="brandrule"></div>
+
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <div class="segmented" role="tablist" aria-label="Anleitungen">
+      <span class="thumb" aria-hidden="true"></span>
+      <button class="seg" role="tab" id="tab-0" aria-controls="panel-0" aria-selected="false" tabindex="-1"><span class="num">1</span> Mitgliedsantrag</button><button class="seg" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="false" tabindex="-1"><span class="num">2</span> Schiedsrichter</button><button class="seg" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1"><span class="num">3</span> Fahrtkosten</button><button class="seg" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1"><span class="num">4</span> Sonstige Kosten</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+  
+<section class="panel" id="panel-0" role="tabpanel" aria-labelledby="tab-0" hidden>
+  <div class="panel-head">
+    <p class="kicker">Mitgliedschaft</p>
+    <h2>Mitglied werden</h2>
+    <p class="standfirst">Der Aufnahmeantrag läuft vollständig online – für dich selbst oder für dein Kind. Nach dem Absenden bist du im Vereinssystem angelegt und bekommst die Bestätigung per E-Mail. <strong>Dauer: rund fünf Minuten.</strong></p>
+    <div class="cta">
+      <a class="cta-btn" href="https://mitglied.bcerfurt.de/mitgliedsantrag/" target="_blank" rel="noopener">
+        Zum Mitgliedsantrag <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="cta-note">Online ausfüllen und absenden – Papier ist nicht nötig.</p>
+    </div>
+  </div>
+  <section class="card"><h3>Das brauchst du</h3><ul class='check'><li>Name, Geburtsdatum und Anschrift der Person, die Mitglied wird</li><li>Eine E-Mail-Adresse und eine Telefonnummer für Rückfragen</li><li>IBAN und Kontoinhaber für den Mitgliedsbeitrag per Lastschrift</li><li>Falls vorhanden: die Nummer des Teilhabegutscheins (THG)</li></ul></section><section class="card"><h3>So geht’s</h3><ol class='steps'><li><h3>Anmeldeart wählen</h3><p>„Mein Kind anmelden“ oder „Mich selbst anmelden“. Diese Auswahl steuert, wessen Daten in den folgenden Abschnitten gefragt sind – das Formular erscheint erst danach.</p></li><li><h3>Person eintragen</h3><p>Vorname, Nachname, Geburtsdatum und Geschlecht. Bei einer Kinderanmeldung sind das die Daten des Kindes, nicht die der Eltern.</p></li><li><h3>Spielbetrieb festlegen (nur Erwachsene)</h3><p>Setze das Häkchen, wenn du ausschließlich im Freizeitbereich spielen und nicht am Spielbetrieb teilnehmen möchtest. Das wirkt sich auf den Beitrag aus.</p></li><li><h3>Kontaktdaten angeben</h3><p>E-Mail, Telefon, PLZ und Ort sind Pflicht, die Straße ist freiwillig. Bei einer Kinderanmeldung gehören hier die Daten des Erziehungsberechtigten hin.</p></li><li><h3>Bankverbindung eintragen</h3><p>Kontoinhaber und IBAN für den Mitgliedsbeitrag. Bei Kindern kannst du hier den Teilhabegutschein angeben – Häkchen setzen und die THG-Nummer eintragen.</p></li><li><h3>Satzung bestätigen und absenden</h3><p>Häkchen bei Satzung und Beitragsordnung setzen, dann „Mitgliedschaft beantragen“. Bitte nur einmal klicken.</p></li></ol></section><section class="card"><h3>Pflichtangaben</h3><dl class='facts'><dt>Immer nötig</dt><dd>Vorname, Nachname, Geburtsdatum, Geschlecht, E-Mail, Telefon, PLZ, Ort, Kontoinhaber, IBAN</dd><dt>Freiwillig</dt><dd>Straße und Hausnummer, THG-Nummer</dd><dt>PLZ</dt><dd>Genau fünf Ziffern</dd><dt>IBAN</dt><dd>Deutsche IBAN, also DE und 20 Ziffern</dd><dt>Zustimmung</dt><dd>Satzung und Beitragsordnung müssen bestätigt werden</dd><dt>Zahlweise</dt><dd>SEPA-Lastschrift, das Mandat wird automatisch erzeugt</dd></dl></section><section class="card"><h3>Was danach passiert</h3><ul class='after'><li>Du bekommst sofort eine <strong>E-Mail mit dem Antrag als PDF</strong> – bitte aufbewahren. Darauf steht auch deine <strong>SEPA-Mandatsreferenz</strong>.</li><li>Der Kassenwart erhält den Antrag zeitgleich und prüft ihn.</li><li>Die Mitgliedschaft gilt als beantragt und wird nach der Prüfung bestätigt.</li><li>Der Beitrag wird anschließend nach der Beitragsordnung per Lastschrift eingezogen.</li></ul></section><section class="card"><h3>Wenn etwas nicht klappt</h3><table class='trouble'><thead><tr><th>Das siehst du</th><th>Das hilft</th></tr></thead><tbody><tr><td><span class='msg'>Bitte eine gültige deutsche IBAN eingeben</span></td><td>Nur deutsche IBANs werden akzeptiert: DE und 20 Ziffern. Leerzeichen darfst du tippen, sie werden automatisch gesetzt.</td></tr><tr><td><span class='msg'>Die eingegebene IBAN ist ungültig</span></td><td>Die Prüfziffer stimmt nicht. Bitte Ziffer für Ziffer gegen die Bankkarte prüfen.</td></tr><tr><td><span class='msg'>Diese E-Mail-Adresse ist bereits registriert</span></td><td>Für die Adresse existiert schon ein Zugang. Bei einem zweiten Kind bitte kurz bei der Mitgliederverwaltung melden.</td></tr><tr><td><span class='msg'>Bitte wähle zuerst eine Anmeldeoption</span></td><td>Ganz oben „Mein Kind anmelden“ oder „Mich selbst anmelden“ auswählen.</td></tr><tr><td><span class='msg'>Zeitüberschreitung</span></td><td>Nicht sofort erneut senden. Erst im Postfach prüfen, ob die Bestätigung da ist.</td></tr></tbody></table></section>
+  <div class="note"><strong>Für Geschwisterkinder:</strong> Jedes Kind bekommt einen eigenen Antrag. Kontakt- und Bankdaten der Eltern trägst du dabei jedes Mal erneut ein.</div>
+  <div class="cta-end">
+    <p><strong>Alles klar?</strong> Zum Mitgliedsantrag – du kannst diese Anleitung
+       nebenher offen lassen. <a href="../pdf/BCE_Anleitung_1_Mitgliedsantrag.pdf">Diese Anleitung als PDF</a></p>
+    <a class="cta-btn" href="https://mitglied.bcerfurt.de/mitgliedsantrag/" target="_blank" rel="noopener">
+      Zum Mitgliedsantrag <span class="arrow" aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+<section class="panel" id="panel-1" role="tabpanel" aria-labelledby="tab-1" hidden>
+  <div class="panel-head">
+    <p class="kicker">Abrechnung 1 von 3</p>
+    <h2>Schiedsrichterkosten abrechnen</h2>
+    <p class="standfirst">Du hast bei einem Heimspiel die Schiedsrichter bar bezahlt und bekommst das Geld vom Verein zurück. Das Formular liest deinen Beleg automatisch aus, den Rest füllst du in wenigen Feldern aus. <strong>Dauer: rund drei Minuten.</strong></p>
+    <div class="cta">
+      <a class="cta-btn" href="https://mitglied.bcerfurt.de/schiedsrichterkosten/" target="_blank" rel="noopener">
+        Zum Formular <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="cta-note">Am besten gleich am Handy: Beleg fotografieren, hochladen, fertig.</p>
+    </div>
+  </div>
+  <section class="card"><h3>Das brauchst du</h3><ul class='check'><li>Die unterschriebene Schiedsrichterabrechnung als Foto oder PDF (max. 5 MB)</li><li>Spielnummer, Spieldatum sowie Heim- und Auswärtsteam</li><li>Den Betrag, den du ausgezahlt hast</li><li>Deine IBAN und die E-Mail-Adresse, unter der dich der Verein kennt</li></ul></section><section class="card"><h3>So geht’s</h3><ol class='steps'><li><h3>Beleg hochladen</h3><p>Datei auswählen oder ins gestrichelte Feld ziehen. Fotos werden automatisch auf A4 verkleinert und komprimiert – du musst nichts vorbereiten.</p></li><li><h3>Erkennung abwarten</h3><p>Der Beleg wird ausgelesen, das dauert etwa 10 bis 30 Sekunden. Danach stehen die gefundenen Werte unter dem Beleg. „Alle übernehmen“ füllt das Formular in einem Schritt.</p></li><li><h3>Spieldaten gegenprüfen</h3><p>Grün umrandete Felder stammen aus der Erkennung – lies sie einmal gegen den Beleg. Vor allem Betrag und Spielnummer. Jede Änderung entfernt die Markierung.</p></li><li><h3>Persönliche Daten eintragen</h3><p>Vor- und Nachname, E-Mail und IBAN. Der Kontoinhaber wird aus deinem Namen vorbelegt und lässt sich überschreiben.</p></li><li><h3>Bestätigen und absenden</h3><p>Häkchen setzen, „Antrag absenden“. Das Absenden dauert bis zu 90 Sekunden – bitte nur einmal klicken und die Seite offen lassen.</p></li></ol></section><section class="card"><h3>Fristen und Grenzen</h3><dl class='facts'><dt>Spieldatum</dt><dd>Im laufenden Kalenderjahr, höchstens 30 Tage her, nicht in der Zukunft</dd><dt>Beleg</dt><dd>Pflicht – JPG, PNG oder PDF, höchstens 5 MB</dd><dt>IBAN</dt><dd>Deutsche IBAN, also DE und 20 Ziffern</dd><dt>Anträge pro Tag</dt><dd>3 je E-Mail-Adresse</dd><dt>Ausfüllzeit</dt><dd>Mindestens 10 Sekunden, Formular bleibt 30 Minuten gültig</dd><dt>Doppelte Anträge</dt><dd>Jede Kombination aus Spielnummer und Spieldatum nur einmal</dd></dl></section><section class="card"><h3>Was danach passiert</h3><ul class='after'><li>Dein Antrag bekommt die Belegnummer <b class='no'>BCESR</b> + Datum + laufende Nummer, zum Beispiel <b class='no'>BCESR26081101</b>.</li><li>Du erhältst sofort eine <strong>E-Mail mit dem Antrag als PDF</strong>, der Originalbeleg ist darin enthalten.</li><li>Der Kassenwart wird zeitgleich informiert und prüft den Antrag.</li><li><strong>Nach der Freigabe wird der Betrag überwiesen.</strong> Im Verwendungszweck steht deine Belegnummer – daran erkennst du die Gutschrift auf dem Kontoauszug.</li></ul></section><section class="card"><h3>Wenn etwas nicht klappt</h3><table class='trouble'><thead><tr><th>Das siehst du</th><th>Das hilft</th></tr></thead><tbody><tr><td><span class='msg'>Erkennung nicht möglich</span></td><td>Kein Problem – fülle die Felder von Hand aus. Der Antrag geht genauso durch.</td></tr><tr><td><span class='msg'>Bitte nimm dir etwas mehr Zeit beim Ausfüllen</span></td><td>Der Spamschutz greift bei sehr schnellen Eingaben. Kurz warten, dann erneut senden.</td></tr><tr><td><span class='msg'>Das Formular ist abgelaufen</span></td><td>Die Seite lag länger als 30 Minuten offen. Seite neu laden und noch einmal ausfüllen.</td></tr><tr><td><span class='msg'>… bereits eingereicht</span></td><td>Für dieses Spiel liegt schon ein Antrag vor. Bei Fragen beim Kassenwart melden.</td></tr><tr><td><span class='msg'>Die Datei ist zu groß</span></td><td>Foto in geringerer Auflösung aufnehmen oder als JPG statt PDF speichern.</td></tr><tr><td><span class='msg'>Zeitüberschreitung</span></td><td>Nicht sofort erneut senden. Erst im Postfach prüfen, ob die Bestätigung da ist.</td></tr></tbody></table></section>
+  <div class="note"><strong>Wichtig:</strong> Reiche den Beleg nur einmal ein – weder zusätzlich per E-Mail noch in Papierform. Alles Weitere übernimmt der Verein.</div>
+  <div class="cta-end">
+    <p><strong>Alles klar?</strong> Zum Formular – du kannst diese Anleitung
+       nebenher offen lassen. <a href="../pdf/BCE_Anleitung_2_Schiedsrichterkosten.pdf">Diese Anleitung als PDF</a></p>
+    <a class="cta-btn" href="https://mitglied.bcerfurt.de/schiedsrichterkosten/" target="_blank" rel="noopener">
+      Zum Formular <span class="arrow" aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+<section class="panel" id="panel-2" role="tabpanel" aria-labelledby="tab-2" hidden>
+  <div class="panel-head">
+    <p class="kicker">Abrechnung 2 von 3</p>
+    <h2>Fahrtkosten abrechnen</h2>
+    <p class="standfirst">Du bist mit dem eigenen Auto zu einem Spiel oder einer Vereinsfahrt gefahren. Der Verein erstattet <strong>0,15 € pro Kilometer</strong> für Hin- und Rückweg zusammen. Einen Beleg brauchst du dafür nicht. Für Bahnfahrten nimm die sonstigen Kosten.</p>
+    <div class="cta">
+      <a class="cta-btn" href="https://mitglied.bcerfurt.de/fahrtkosten/" target="_blank" rel="noopener">
+        Zum Formular <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="cta-note">Ohne Beleg – Ziel eintragen, die Kilometer rechnet das Formular aus.</p>
+    </div>
+  </div>
+  <section class="card"><h3>Das brauchst du</h3><ul class='check'><li>Das Reisedatum</li><li>Start- und Zielort sowie den Anlass, etwa Spielnummer und Paarung</li><li>Die Anzahl der Mitreisenden</li><li>Deine IBAN und die E-Mail-Adresse, unter der dich der Verein kennt</li></ul></section><section class="card"><h3>So geht’s</h3><ol class='steps'><li><h3>Reisedaten eintragen</h3><p>Datum der Fahrt und Anzahl der Mitreisenden. Beides ist Pflicht.</p></li><li><h3>Strecke angeben</h3><p>Startort steht auf Erfurt, Zielort trägst du ein. Sobald du das Feld verlässt, ermittelt das System die Fahrstrecke und trägt die Kilometer für Hin- und Rückweg automatisch ein.</p></li><li><h3>Kilometer prüfen</h3><p>Der Vorschlag lässt sich überschreiben, etwa bei Umwegen oder Sammelfahrten. Liegt deine Angabe mehr als 10 % über der ermittelten Strecke, kommt vor dem Absenden eine Rückfrage – du kannst sie bestätigen.</p></li><li><h3>Anlass beschreiben</h3><p>Zum Beispiel „Spielnr. 12345 · BC Erfurt vs. SV Musterstadt“. Je konkreter, desto schneller die Freigabe.</p></li><li><h3>Persönliche Daten und absenden</h3><p>Name, E-Mail und IBAN eintragen, bestätigen, absenden. Der Auszahlungsbetrag wird laufend mitgerechnet und steht über den persönlichen Daten.</p></li></ol></section><section class="card"><h3>Fristen und Grenzen</h3><dl class='facts'><dt>Reisedatum</dt><dd>Im laufenden Kalenderjahr, höchstens 30 Tage her, nicht in der Zukunft</dd><dt>Vergütung</dt><dd>0,15 € je Kilometer, Hin- und Rückweg zusammen</dd><dt>Kilometer</dt><dd>Über 10 % Abweichung von der ermittelten Strecke wird nachgefragt</dd><dt>IBAN</dt><dd>Deutsche IBAN, also DE und 20 Ziffern</dd><dt>Anträge pro Tag</dt><dd>3 je E-Mail-Adresse</dd><dt>Ausfüllzeit</dt><dd>Mindestens 10 Sekunden, Formular bleibt eine Stunde gültig</dd></dl></section><section class="card"><h3>Was danach passiert</h3><ul class='after'><li>Dein Antrag bekommt die Belegnummer <b class='no'>BCE</b> + Datum + laufende Nummer, zum Beispiel <b class='no'>BCE260811001</b>.</li><li>Du erhältst sofort eine <strong>E-Mail mit dem Antrag als PDF</strong>.</li><li>Der Kassenwart wird zeitgleich informiert und prüft den Antrag.</li><li><strong>Nach der Freigabe wird der Betrag überwiesen.</strong> Im Verwendungszweck steht deine Belegnummer – daran erkennst du die Gutschrift auf dem Kontoauszug.</li></ul></section><section class="card"><h3>Wenn etwas nicht klappt</h3><table class='trouble'><thead><tr><th>Das siehst du</th><th>Das hilft</th></tr></thead><tbody><tr><td>Die Kilometer werden nicht berechnet</td><td>Ort genauer schreiben, etwa „Jena, Deutschland“ statt nur „Jena“. Du kannst die Kilometer auch selbst eintragen, der Antrag geht trotzdem durch.</td></tr><tr><td>Rückfrage zur Kilometerangabe</td><td>Das System hat eine kürzere Strecke gefunden. Bei Umwegen oder Sammelfahrten einfach bestätigen – der Kassenwart sieht den Hinweis mit.</td></tr><tr><td><span class='msg'>Anträge nur bis zu 30 Tage nach der Reise möglich</span></td><td>Die Frist ist abgelaufen. Bitte direkt an den Kassenwart wenden.</td></tr><tr><td><span class='msg'>Maximale Anträge pro Tag erreicht</span></td><td>Drei Anträge je Tag und Adresse sind das Limit. Morgen geht es weiter.</td></tr><tr><td><span class='msg'>Zeitüberschreitung</span></td><td>Nicht sofort erneut senden. Erst im Postfach prüfen, ob die Bestätigung da ist.</td></tr></tbody></table></section><section class="card"><h3>Mehrere Fahrten</h3><p style='color:var(--ink-soft)'>Jede Fahrt wird einzeln abgerechnet – ein Antrag je Reisedatum. Fahren mehrere Eltern zum selben Spiel, stellt jede Person ihren eigenen Antrag für die eigene Strecke.</p></section>
+  <div class="note"><strong>Wichtig:</strong> Die Kilometer gelten für Hin- <em>und</em> Rückweg zusammen. Die automatische Berechnung berücksichtigt das bereits – bitte den Wert nicht verdoppeln.</div>
+  <div class="cta-end">
+    <p><strong>Alles klar?</strong> Zum Formular – du kannst diese Anleitung
+       nebenher offen lassen. <a href="../pdf/BCE_Anleitung_3_Fahrtkosten.pdf">Diese Anleitung als PDF</a></p>
+    <a class="cta-btn" href="https://mitglied.bcerfurt.de/fahrtkosten/" target="_blank" rel="noopener">
+      Zum Formular <span class="arrow" aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+<section class="panel" id="panel-3" role="tabpanel" aria-labelledby="tab-3" hidden>
+  <div class="panel-head">
+    <p class="kicker">Abrechnung 3 von 3</p>
+    <h2>Sonstige Kosten abrechnen</h2>
+    <p class="standfirst">Für alle Auslagen, die weder Schiedsrichterkosten noch Fahrten mit dem eigenen Auto sind: Zugkosten, Bewirtung, Turnierfahrten, Material, Druckkosten. <strong>Hier ist immer ein Beleg nötig</strong>, denn er wird Teil der Vereinsbuchhaltung.</p>
+    <div class="cta">
+      <a class="cta-btn" href="https://mitglied.bcerfurt.de/sonstige-kosten/" target="_blank" rel="noopener">
+        Zum Formular <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="cta-note">Am besten gleich am Handy: Beleg fotografieren, hochladen, fertig.</p>
+    </div>
+  </div>
+  <section class="card"><h3>Das brauchst du</h3><ul class='check'><li>Den Beleg oder die Quittung als Foto oder PDF (max. 5 MB)</li><li>Belegdatum und Betrag</li><li>Eine passende Kategorie und eine kurze Beschreibung des Anlasses</li><li>Deine IBAN und die E-Mail-Adresse, unter der dich der Verein kennt</li></ul></section><section class="card"><h3>So geht’s</h3><ol class='steps'><li><h3>Beleg hochladen</h3><p>Datei auswählen oder ins gestrichelte Feld ziehen. Anschließend werden Belegdatum und Betrag automatisch ausgelesen und zur Übernahme vorgeschlagen.</p></li><li><h3>Kostendaten prüfen</h3><p>Belegdatum und Betrag gegenlesen. Übernommene Werte kannst du jederzeit überschreiben.</p></li><li><h3>Kategorie wählen</h3><p>Reise / Fahrtkosten, Bewirtung oder Veranstaltung / Turnierfahrt. Passt nichts davon, wähle „Andere Kategorie“ und benenne sie kurz. Das Feld für das Sachkonto darfst du leer lassen – das ergänzt der Kassenwart.</p></li><li><h3>Anlass beschreiben</h3><p>Ein Satz genügt, aber ein konkreter: „Zugfahrt nach Jena U16 am 15.02.“ ist besser als „Zugfahrt“. Bis zu 200 Zeichen.</p></li><li><h3>Persönliche Daten und absenden</h3><p>Name, E-Mail und IBAN eintragen, bestätigen, absenden. Das Absenden dauert bis zu 90 Sekunden – bitte nur einmal klicken.</p></li></ol></section><section class="card"><h3>Die Kategorien</h3><dl class='facts'><dt>Reise / Fahrtkosten</dt><dd>Bahn, Bus, Parkgebühren – Fahrten mit dem eigenen Auto laufen über die Fahrtkosten-Abrechnung</dd><dt>Bewirtung</dt><dd>Verpflegung bei Turnieren und Sitzungen – für Heimspieltage nur nach vorheriger Absprache mit dem Vorstand</dd><dt>Veranstaltung / Turnierfahrt</dt><dd>Startgelder, Hallenmieten, Turnierkosten</dd><dt>Andere Kategorie</dt><dd>Alles Übrige – kurz benennen, den Rest klärt der Kassenwart</dd></dl></section><section class="card"><h3>Fristen und Grenzen</h3><dl class='facts'><dt>Belegdatum</dt><dd>Im laufenden Kalenderjahr, höchstens 30 Tage her, nicht in der Zukunft</dd><dt>Beleg</dt><dd>Pflicht – JPG, PNG oder PDF, höchstens 5 MB</dd><dt>Beschreibung</dt><dd>Höchstens 200 Zeichen</dd><dt>IBAN</dt><dd>Deutsche IBAN, also DE und 20 Ziffern</dd><dt>Anträge pro Tag</dt><dd>3 je E-Mail-Adresse</dd><dt>Ausfüllzeit</dt><dd>Mindestens 10 Sekunden, Formular bleibt 30 Minuten gültig</dd></dl></section><section class="card"><h3>Was danach passiert</h3><ul class='after'><li>Die Belegnummer richtet sich nach der Kategorie: <b class='no'>BCERK</b> für Reisekosten, <b class='no'>BCEBW</b> für Bewirtung, <b class='no'>BCEVT</b> für Veranstaltungen und <b class='no'>BCESK</b> für alles Übrige.</li><li>Du erhältst sofort eine <strong>E-Mail mit dem Antrag als PDF</strong>, der Originalbeleg ist als zweite Seite enthalten.</li><li>Der Kassenwart wird zeitgleich informiert und prüft den Antrag.</li><li><strong>Nach der Freigabe wird der Betrag überwiesen.</strong> Im Verwendungszweck steht deine Belegnummer – daran erkennst du die Gutschrift auf dem Kontoauszug.</li><li>Bei „Andere Kategorie“ ist eine zusätzliche Prüfung nötig – das kann ein paar Tage länger dauern.</li></ul></section><section class="card"><h3>Wenn etwas nicht klappt</h3><table class='trouble'><thead><tr><th>Das siehst du</th><th>Das hilft</th></tr></thead><tbody><tr><td><span class='msg'>Erkennung nicht möglich</span></td><td>Kein Problem – Datum und Betrag von Hand eintragen. Der Antrag geht genauso durch.</td></tr><tr><td>Erkannter Betrag stimmt nicht</td><td>Bei Kassenbons wird gelegentlich eine Zwischensumme erkannt. Immer gegen den Beleg prüfen und den tatsächlichen Endbetrag eintragen.</td></tr><tr><td><span class='msg'>Anträge nur bis zu 30 Tage nach dem Belegdatum möglich</span></td><td>Die Frist ist abgelaufen. Bitte direkt an den Kassenwart wenden.</td></tr><tr><td><span class='msg'>nur Bilder oder PDF erlaubt</span></td><td>HEIC- oder Office-Dateien gehen nicht. Als JPG oder PDF speichern.</td></tr><tr><td><span class='msg'>ist zu groß</span></td><td>Foto in geringerer Auflösung aufnehmen oder als JPG statt PDF speichern.</td></tr><tr><td><span class='msg'>Zeitüberschreitung</span></td><td>Nicht sofort erneut senden. Erst im Postfach prüfen, ob die Bestätigung da ist.</td></tr></tbody></table></section>
+  <div class="note"><strong>Wichtig:</strong> Bewahre den Originalbeleg bis zur Gutschrift auf. Der Verein braucht ihn nicht in Papierform, aber bei Rückfragen ist er hilfreich.</div>
+  <div class="cta-end">
+    <p><strong>Alles klar?</strong> Zum Formular – du kannst diese Anleitung
+       nebenher offen lassen. <a href="../pdf/BCE_Anleitung_4_SonstigeKosten.pdf">Diese Anleitung als PDF</a></p>
+    <a class="cta-btn" href="https://mitglied.bcerfurt.de/sonstige-kosten/" target="_blank" rel="noopener">
+      Zum Formular <span class="arrow" aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+</main>
+
+<footer class="page">
+  <div>
+    <span>Fragen zur Abrechnung: <a href="mailto:kassenwart@bcerfurt.de">kassenwart@bcerfurt.de</a></span>
+    <span>bcerfurt.de · Stand August 2026</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var segs   = Array.prototype.slice.call(document.querySelectorAll(".seg"));
+  var panels = Array.prototype.slice.call(document.querySelectorAll(".panel"));
+  var thumb  = document.querySelector(".thumb");
+
+  function moveThumb(btn) {
+    if (!thumb || !btn) return;
+    thumb.style.width = btn.offsetWidth + "px";
+    thumb.style.transform = "translateX(" + (btn.offsetLeft - 3) + "px)";
+  }
+
+  function select(i, focus) {
+    segs.forEach(function (s, n) {
+      s.setAttribute("aria-selected", n === i ? "true" : "false");
+      s.tabIndex = n === i ? 0 : -1;
+    });
+    panels.forEach(function (p, n) {
+      p.classList.toggle("is-active", n === i);
+      p.hidden = n !== i;
+    });
+    moveThumb(segs[i]);
+    if (focus) segs[i].focus();
+  }
+
+  segs.forEach(function (btn, i) {
+    btn.addEventListener("pointerdown", function () { moveThumb(btn); });
+    btn.addEventListener("click", function () { select(i, false); });
+    btn.addEventListener("keydown", function (e) {
+      var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      select((i + d + segs.length) % segs.length, true);
+    });
+  });
+
+  window.addEventListener("resize", function () {
+    moveThumb(document.querySelector('.seg[aria-selected="true"]'));
+  });
+
+  select(0, false);
+  requestAnimationFrame(function () { moveThumb(segs[0]); });
+})();
+</script>
+
+</body>
+</html>
