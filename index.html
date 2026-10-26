@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Für Mitglieder – BC Erfurt e.V.</title>
-<meta name="description" content="Mitgliedsantrag und Kostenerstattung des BC Erfurt e.V. – Formulare und Anleitungen an einer Stelle.">
+<title>Für Mitglieder | BC Erfurt e.V.</title>
+<meta name="description" content="Mitgliedsantrag, Beiträge und Kostenerstattung des BC Erfurt e.V. an einer Stelle.">
 <link rel="icon" href="assets/logo.png">
 <style>
 :root {
@@ -116,6 +116,35 @@ h2.section {
 .doc .titel { flex: 1; }
 .doc .num { color: var(--ink-mute); font-variant-numeric: tabular-nums; min-width: 1.2em; }
 
+.beitraege {
+  background: var(--surface); border: 1px solid var(--rule-soft);
+  border-left: 4px solid var(--pink);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1.3rem clamp(1.1rem, 3vw, 1.6rem); margin-bottom: 1rem;
+}
+.beitraege table {
+  width: 100%; border-collapse: collapse;
+  font-variant-numeric: tabular-nums; margin-bottom: 1rem;
+}
+.beitraege th {
+  text-align: left; font-weight: 500; color: var(--ink-soft);
+  padding: .55rem 1rem .55rem 0; border-bottom: 1px solid var(--rule-soft);
+}
+.beitraege td {
+  text-align: right; white-space: nowrap; font-weight: 650; font-size: 1.05rem;
+  padding: .55rem 0; border-bottom: 1px solid var(--rule-soft);
+}
+.beitraege tr:last-child th, .beitraege tr:last-child td { border-bottom: 0; }
+.beitrag-fuss { margin: 0 0 .6rem; font-size: .88rem; color: var(--ink-mute); }
+.beitrag-fuss:last-child { margin-bottom: 0; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (max-width: 30rem) {
+  .beitraege th { padding-right: .6rem; font-size: .92rem; }
+}
+
 .hint {
   margin-top: 1rem; background: var(--surface-2); border-left: 3px solid var(--cyan);
   border-radius: 0 8px 8px 0; padding: .9rem 1.1rem; font-size: .94rem; color: var(--ink-soft);
@@ -151,8 +180,8 @@ footer a { color: var(--ink-soft); }
     <div class="tiles">
       <a class="tile haupt" href="mitgliedsantrag/">
         <h3>Mitglied werden <span class="arrow" aria-hidden="true">→</span></h3>
-        <p>Aufnahmeantrag für dich selbst oder dein Kind. Online ausfüllen, absenden, fertig – Papier ist nicht nötig.</p>
-        <span class="meta">Dauert etwa 5 Minuten</span>
+        <p>Aufnahmeantrag für dich selbst oder dein Kind. Online ausfüllen, absenden, fertig. Papier ist nicht nötig.</p>
+        <span class="meta">Ab 5,00 € im Monat, dauert etwa 5 Minuten</span>
       </a>
       <a class="tile" href="schiedsrichterkosten/">
         <h3>Schiedsrichterkosten <span class="arrow" aria-hidden="true">→</span></h3>
@@ -166,8 +195,42 @@ footer a { color: var(--ink-soft); }
       </a>
       <a class="tile" href="sonstige-kosten/">
         <h3>Sonstige Kosten <span class="arrow" aria-hidden="true">→</span></h3>
-        <p>Auslagen für Bewirtung, Turnierfahrten oder Material – mit Beleg.</p>
+        <p>Auslagen für Bewirtung, Turnierfahrten oder Material, immer mit Beleg.</p>
         <span class="meta">Dauert etwa 3 Minuten</span>
+      </a>
+    </div>
+
+    <h2 class="section">Was die Mitgliedschaft kostet</h2>
+    <div class="beitraege">
+      <table>
+        <caption class="sr-only">Monatsbeiträge nach Mitgliedsart</caption>
+        <tbody>
+          <tr><th scope="row">Kinder bis zum vollendeten 10. Lebensjahr</th><td>5,00 €</td></tr>
+          <tr><th scope="row">Jugendliche bis zum vollendeten 19. Lebensjahr</th><td>18,00 €</td></tr>
+          <tr><th scope="row">Erwachsene im Spielbetrieb</th><td>25,00 €</td></tr>
+          <tr><th scope="row">Erwachsene ohne Spielbetrieb</th><td>15,00 €</td></tr>
+          <tr><th scope="row">Fördernde Mitglieder</th><td>5,00 €</td></tr>
+          <tr><th scope="row">Ehrenamtlich tätige Mitglieder, auf Antrag</th><td>5,00 €</td></tr>
+        </tbody>
+      </table>
+      <p class="beitrag-fuss">Beträge pro Monat. Dazu kommt eine einmalige Aufnahmegebühr
+         von 10,00 €. Eingezogen wird quartalsweise per SEPA-Lastschrift, bei fördernden
+         Mitgliedern einmal im Jahr.</p>
+      <p class="beitrag-fuss">Wer sich überdurchschnittlich im Ehrenamt engagiert, etwa als
+         Übungsleiterin, Schiedsrichter oder im Vorstand, kann den ermäßigten Beitrag formlos
+         beim Kassenwart beantragen. Wer verletzt ist und weder trainieren noch spielen kann,
+         kann den Beitrag einmalig für bis zu sechs Monate aussetzen lassen.</p>
+      <p class="beitrag-fuss">Maßgeblich ist die Beitragsordnung in der Fassung vom 01.01.2025.</p>
+    </div>
+
+    <div class="docs">
+      <a class="doc" href="https://cms.bcerfurt.de/assets/8bedaf49-98cc-4553-9991-55053ffd9dd9">
+        <span class="titel">Beitragsordnung</span>
+        <span class="kind">PDF</span>
+      </a>
+      <a class="doc" href="https://cms.bcerfurt.de/assets/22daa310-8ec5-448e-adce-5e11214d9814">
+        <span class="titel">Satzung</span>
+        <span class="kind">PDF</span>
       </a>
     </div>
 
